@@ -1,0 +1,33 @@
+name: BadgeHacker
+package: badgehacker
+org: Parallax Inc.
+url: http://developer.parallax.com/projects/badgehacker/
+maintainer: LameStation
+email: contact@lamestation.com
+copyright: 2014-2015
+license: GPLv3
+tagline: Hack your Parallax Hackable Electronic Badge!
+description: Use the Parallax Hackable Electronic Badge at your event without having to touch a line of code.
+master: badgehacker
+
+target: 
+    deb: 
+        depends: libftdi1
+        categories: Development;IDE
+        section: Applications/Editors
+    dmg: 
+        category: public.app-category.developer-tools
+        background: gfx/mac-dmg.png
+        bundle: badgehacker
+    inno:
+        banner: gfx/win-banner.bmp
+        run: badgehacker
+
+repos: 
+    badgehacker:
+        url: https://github.com/parallaxinc/BadgeHacker.git
+        builder: qmake
+        files:
+            badgehacker:
+                name: BadgeHacker
+                icon: gfx/20000.png
