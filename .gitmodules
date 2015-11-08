@@ -1,0 +1,3 @@
+[submodule "manager"]
+	path = propellermanager
+	url = https://github.com/parallaxinc/PropellerManager

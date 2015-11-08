@@ -1,0 +1,45 @@
+───────────────────────────────────────
+Parallax Semiconductor Propeller Chip Project Archive
+───────────────────────────────────────
+
+ Project :  "jm_hackable_ebadge__2015-11-05"
+
+Archived :  Thursday, November 5, 2015 at 11:15:18 AM
+
+    Tool :  Propeller Tool version 1.3.2
+
+
+            jm_hackable_ebadge__2015-11-05.spin
+              │
+              ├──jm_time.spin
+              │
+              ├──jm_io.spin
+              │
+              ├──jm_24xx512.spin
+              │    │
+              │    └──jm_i2c.spin
+              │
+              ├──jm_mma7660fc.spin
+              │    │
+              │    └──jm_i2c.spin
+              │
+              ├──jm_touchpads.spin
+              │
+              ├──jm_parser.spin
+              │    │
+              │    └──jm_strings.spin
+              │
+              ├──OLED_AsmFast.spin
+              │
+              ├──jm_ebadge_leds.spin
+              │
+              ├──jm_ir_hdserial.spin
+              │
+              └──jm_fullduplexserial.spin
+
+
+────────────────────
+Parallax Inc., dba Parallax Semiconductor
+www.parallaxsemiconductor.com
+support@parallaxsemiconductor.com
+USA 916.632.4664
