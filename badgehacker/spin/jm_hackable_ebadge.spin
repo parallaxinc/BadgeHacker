@@ -1,6 +1,6 @@
 '' =================================================================================================
 ''
-''   File....... jm_hackable_ebadge__2015-11-05.spin
+''   File....... jm_hackable_ebadge__2015-11-08c.spin
 ''   Purpose.... Demo code for Parallax Hackable badge
 ''   Author..... Jon "JonnyMac" McPhalen
 ''               Copyright (C) 2015 Jon McPhalen
@@ -12,6 +12,12 @@
 '' =================================================================================================
 
 {
+  08 NOV 2015 -- Updates to assist BadgeHacker
+                 * added blank start-up message (CLS [#16], CLRDN [#12])
+                   -- when AUTO_ME is NO
+                 * all messages termianted with CLRDN [#12]
+                 * added WIPE option to CONTACTS
+
   05 NOV 2015 -- Modified show_logo method to add flashing rgb lights
               -- added AUTO_ME switch (set to NO to stop ME display after setting user string)
               -- removed call to lamp test
@@ -128,7 +134,7 @@
 
       Note: The jm_ebadge_leds object dated 31 OCT 2015 is required.
     
-}
+}   
 
 
 con { timing }
@@ -368,12 +374,15 @@ pub main | c
 
   setup                                                          ' setup io and badge objects
 
-  bytefill(oled.getBuffer, 0, 1024)
-  oled.updatedisplay 
-  
   check_db                                                       ' check for database reset  
 
   show_logo
+
+  if (AUTO_ME == YES)                                            ' if terminal mode
+    show_me(-1)                                                  '  show badge owner
+  else
+    term.tx(term#CLS)                                            ' blank message for BadgeHacker
+    term.tx(term#CLRDN)
 
   repeat
     c := term.rxcheck                                            ' any serial input?
@@ -997,7 +1006,7 @@ con { enumerated parser tokens }
   #0, T_NSMSG, T_SMSG, T_SCROLL                                              { 
    }, T_NO, T_YES                                                            { 
    }, T_INFO, T_ME                                                           { 
-   }, T_CONTACTS                                                             {
+   }, T_CONTACTS, T_WIPE                                                             {
    }, T_BUTTONS                                                              {    
    }, T_LED, T_ALL, T_OFF, T_ON                                              { 
    }, T_RGB, T_LEFT, T_RIGHT                                                 { 
@@ -1024,7 +1033,8 @@ dat { valid command tokens }
                 byte    "YES", 0      
                 byte    "INFO", 0     
                 byte    "ME", 0       
-                byte    "CONTACTS", 0 
+                byte    "CONTACTS", 0
+                byte    "WIPE", 0
                 byte    "BUTTONS",0   
                 byte    "LED", 0      
                 byte    "ALL", 0      
@@ -1049,19 +1059,19 @@ dat { valid command tokens }
 
 
   HELP_MSG      byte    "Commands:", 13
-                byte    "  NSMSG line1 line2                   -- non-scrolling, 8 chars max", 13
-                byte    "  NSMSG [1|2] line                    -- non-scrolling, 8 chars max", 13
-                byte    "  SMSG line1 line2                    -- scrolling, 31 chars max", 13
-                byte    "  SMSG [1|2] line                     -- scrolling, 31 chars max", 13     
-                byte    "  SCROLL [NO|YES]                     -- enable/disable scrolling", 13
-                byte    "  INFO [1..4] string                  -- set info string (1..4)", 13
-                byte    "  ME                                  -- display info strings", 13     
-                byte    "  CONTACTS                            -- display stored contacts", 13
-                byte    "  BUTTONS                             -- display touchpad buttons", 13
-                byte    "  LED [0..5|ALL] [OFF|ON|pattern]     -- set blue LEDs", 13
-                byte    "  RGB [COLOR|LEFT|RIGHT|] COLOR       -- set RGB LEDs", 13
-                byte    "  ACCEL [ALL|X|Y|Z]                   -- read accelerometer", 13 
-                byte    "  HELP                                -- display this screen", 13
+                byte    "  NSMSG line1 line2               -- non-scrolling, 8 chars max", 13
+                byte    "  NSMSG [1|2] line                -- non-scrolling, 8 chars max", 13
+                byte    "  SMSG line1 line2                -- scrolling, 31 chars max", 13
+                byte    "  SMSG [1|2] line                 -- scrolling, 31 chars max", 13     
+                byte    "  SCROLL [NO|YES]                 -- enable/disable scrolling", 13
+                byte    "  INFO [1..4] string              -- set info string (1..4)", 13
+                byte    "  ME                              -- display info strings", 13     
+                byte    "  CONTACTS {WIPE}                 -- display/wipe stored contacts", 13
+                byte    "  BUTTONS                         -- display touchpad buttons", 13
+                byte    "  LED [0..5|ALL] [OFF|ON|pattern] -- set blue LEDs", 13
+                byte    "  RGB [COLOR|LEFT|RIGHT|] COLOR   -- set RGB LEDs", 13
+                byte    "  ACCEL [ALL|X|Y|Z]               -- read accelerometer", 13 
+                byte    "  HELP                            -- display this screen", 13
                 byte    13
                 byte    0
 
@@ -1080,7 +1090,7 @@ pub process_cmd | tidx
     T_SCROLL   : get_scroll 
     T_INFO     : get_info
     T_ME       : show_me(%1111)
-    T_CONTACTS : show_contacts
+    T_CONTACTS : get_contacts
     T_BUTTONS  : show_buttons
     T_LED      : get_led 
     T_RGB      : get_rgb
@@ -1098,6 +1108,7 @@ pub get_nonscroll_msg | n
     term.tx(term#CR)
     term.str(@NSMsg1)
     term.tx(term#CR)
+    term.tx(term#CLRDN)
     return
 
   if (parser.token_count <> 3)                                   ' not 2 parameters?
@@ -1119,6 +1130,9 @@ pub get_nonscroll_msg | n
 
   if (AUTO_ME == YES)
     show_me(-1)
+  else
+    term.tx(term#CLS)
+    term.tx(term#CLRDN)
 
   refresh_nsmsg(false)                                           ' update display
 
@@ -1147,6 +1161,7 @@ pub get_scrolling_msg  | n, tlen
     term.tx(term#CR)
     term.str(@SMsg1)
     term.tx(term#CR)
+    term.tx(term#CLRDN)
     return
 
   if (parser.token_count <> 3)                                   ' not 2 parameters?
@@ -1171,6 +1186,9 @@ pub get_scrolling_msg  | n, tlen
 
   if (AUTO_ME == YES)
     show_me(-1)
+  else
+    term.tx(term#CLS)
+    term.tx(term#CLRDN)
   
 
 pub update_str(p_dest, p_src, maxlen) | len
@@ -1196,6 +1214,7 @@ pub get_scroll | tidx
       term.str(string("Yes", 13))  
     else
       term.str(string("No", 13))
+    term.tx(term#CLRDN)
     return  
 
   if (parser.token_count <> 2)                                   ' check token count
@@ -1205,7 +1224,7 @@ pub get_scroll | tidx
   parser.ucase(1)                                                ' make command ucase
   tidx := parser.get_token_id(parser.token_addr(1))              ' get token index
 
-  tidx := lookdown(tidx : T_NO, T_OFF, T_YES, T_ON)              ' convert tidx to 0..4
+  tidx := lookdown(tidx : T_NO, T_OFF, T_YES, T_ON)              ' convert tidx to 1..4
 
   if (tidx == 0)                                                 ' bad command
     show_help
@@ -1217,6 +1236,9 @@ pub get_scroll | tidx
 
   if (AUTO_ME == YES)
     show_me(-1)
+  else
+    term.tx(term#CLS)
+    term.tx(term#CLRDN)
    
           
 pub get_info | n, p_str, tlen
@@ -1231,9 +1253,19 @@ pub get_info | n, p_str, tlen
     term.tx(term#CR)
     term.str(@MyInfo3)
     term.tx(term#CR)
+    term.tx(term#CLRDN)
     return
 
-  if (parser.token_count <> 3)                                   ' check token count
+  if (parser.token_count == 5)                                   ' everything in one go?
+    update_str(@MyInfo0, parser.token_addr(1), 31) 
+    update_str(@MyInfo1, parser.token_addr(2), 31) 
+    update_str(@MyInfo2, parser.token_addr(3), 31) 
+    update_str(@MyInfo3, parser.token_addr(4), 31)
+    term.tx(term#CLS) 
+    term.tx(term#CLRDN) 
+    return
+    
+  if (parser.token_count <> 3)                                   ' one line at a time?
     show_help
     return
 
@@ -1254,6 +1286,9 @@ pub get_info | n, p_str, tlen
 
   if (AUTO_ME == YES)
     show_me(-1)
+  else
+    term.tx(term#CLS)
+    term.tx(term#CLRDN)
 
 
 pub spaced_string(spaces, id, p_str)
@@ -1307,13 +1342,34 @@ pub show_me(select)
     spaced_string(2, 4, @MyInfo3)     
     term.tx(term#CR)
 
+  term.tx(term#CLRDN)
+
       
-pub show_contacts | idx
+pub get_contacts | idx
 
 '' Display all contacts
 
   term.tx(term#CLS)
 
+  if (parser.token_count == 2)                                   ' parameter after CONTACTS?
+    parser.ucase(1) 
+    idx := parser.get_token_id(parser.token_addr(1))
+    if (idx == T_WIPE)                                           ' is it WIPE?
+      wipe_db                                                    ' clear the contacts
+      leds.clear                                                 ' refresh display                   
+      dstate := MSG_NAME           
+      update_display(posx)         
+      scrollidx := -(NAME_CHARS-1) 
+      scrtmr.set(-SCROLL_MS)
+      term.tx(term#CLRDN) 
+    else
+      show_help
+    return
+
+  if (parser.token_count <> 1)                                   ' invalid use of CONTACTS?     
+    show_help 
+    return    
+  
   term.dec(numcontacts)                                          ' display # of contacts
   term.str(string(" contact"))
   if (numcontacts <> 1)
@@ -1322,6 +1378,7 @@ pub show_contacts | idx
   term.tx(term#CR)  
 
   if (numcontacts == 0)                                          ' if no contacts
+    term.tx(term#CLRDN)
     return                                                       '  abort
   else
     term.tx(term#CR)
@@ -1341,6 +1398,8 @@ pub show_contacts | idx
     ++idx
     time.pause(15)                                               ' prevent terminal buffer overrun
 
+  term.tx(term#CLRDN)
+
 
 pub show_buttons
 
@@ -1348,10 +1407,10 @@ pub show_buttons
 '' -- uses IBIN7 format
 
   term.tx(term#CLS)
-
   term.tx("%")
   term.bin(pads.read_pads, 7)
   term.tx(term#CR)
+  term.tx(term#CLRDN)
 
          
 pub get_led | n, tidx
@@ -1370,14 +1429,17 @@ pub get_led | n, tidx
     if ((n => 0) and (n =< 5))                                   ' valid LED?
       tidx := parser.get_token_id(parser.token_addr(2))          ' get index of command
       case tidx       
-        T_ON, T_YES : leds.blue_on(n) 
-        T_OFF, T_NO : leds.blue_off(n) 
-        other       : show_help 
+        T_ON, T_YES :
+          leds.blue_on(n) 
+        T_OFF, T_NO :
+          leds.blue_off(n) 
+        other :
+          show_help
+          return
 
     else
       show_help
-      
-    return
+      return
 
   tidx := parser.get_token_id(parser.token_addr(1))              ' get token index of command
   
@@ -1387,13 +1449,18 @@ pub get_led | n, tidx
     else
       tidx := parser.get_token_id(parser.token_addr(2))
       case tidx
-        T_ON, T_YES : leds.set_blue(%111111) 
-        T_OFF, T_NO : leds.set_blue(%000000)
-        other       : show_help 
-
+        T_ON, T_YES :
+          leds.set_blue(%111111) 
+        T_OFF, T_NO :
+          leds.set_blue(%000000)
+        other :
+          show_help 
+          return
+          
   else
     show_help
-   
+    return
+
         
 pub get_rgb | tidx, n, c1, c0
 
@@ -1497,6 +1564,8 @@ pub show_accel_raw(first, last) | sensor, ch, g
     dec_nxn(g)
     term.tx(term#CR)
 
+  term.tx(term#CLRDN)
+
 
 pub dec_nxn(value) | td, div
 
@@ -1516,8 +1585,9 @@ pub dec_nxn(value) | td, div
 pub show_help
 
   term.tx(term#CLS)
-  term.str(@HELP_MSG)             
-
+  term.str(@HELP_MSG)
+  term.tx(term#CLRDN)
+            
 
 pub ee_save_str(p_str) 
 

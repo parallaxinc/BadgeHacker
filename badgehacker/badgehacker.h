@@ -25,6 +25,9 @@ private:
     QTimer updateTimer;
     QProgressDialog progress;
     int read_timeout;
+    bool ack;
+    QString ledpattern;
+    QStringList colornames;
 
 public:
     explicit BadgeHacker(PropellerManager * manager, QWidget *parent = 0);
@@ -45,7 +48,7 @@ private slots:
     void saveContacts();
 
     void read_line();
-    void read_data(const QString & cmd);
+    bool read_data(const QString & cmd = QString());
 
     void write_line(const QString & line);
 
@@ -55,14 +58,26 @@ private slots:
     void write_twoitem_line(const QString & cmd, 
                             const QString & line1,
                             const QString & line2);
-    void write_nsmsg();
-    void write_smsg();
+    void write_nsmsg1();
+    void write_nsmsg2();
+    void write_smsg1();
+    void write_smsg2();
     void write_scroll();
-    void write_info();
+    void write_info1();
+    void write_info2();
+    void write_info3();
+    void write_info4();
+    void write_led();
+    void write_leftrgb();
+    void write_rightrgb();
 
+    bool blank();
     void nsmsg();
     void smsg();
     void scroll();
     void info();
     void contacts();
+
+signals:
+    void finished();
 };
