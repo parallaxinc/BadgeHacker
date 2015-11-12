@@ -1,7 +1,7 @@
 TEMPLATE  = subdirs
 
 SUBDIRS = \
-    propellermanager \
+    propellermanager/src/lib \
     badgehacker \
 
-badgehacker.depends = propellermanager
+badgehacker.depends = propellermanager/src/lib
