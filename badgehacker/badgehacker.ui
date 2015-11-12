@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>BadgeHacker</class>
- <widget class="QDialog" name="BadgeHacker">
+ <widget class="QWidget" name="BadgeHacker">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>695</width>
-    <height>707</height>
+    <height>689</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -30,6 +30,13 @@
          <string>ttyUSB0</string>
         </property>
        </item>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="refresh">
+       <property name="text">
+        <string>Refresh</string>
+       </property>
       </widget>
      </item>
      <item>
@@ -60,7 +67,7 @@
           </sizepolicy>
          </property>
          <property name="title">
-          <string>Badge Text</string>
+          <string>Display Text</string>
          </property>
          <layout class="QFormLayout" name="formLayout_2">
           <item row="1" column="0">
@@ -202,7 +209,7 @@
           </sizepolicy>
          </property>
          <property name="title">
-          <string>Personal Contact Info</string>
+          <string>Shareable Contact Info</string>
          </property>
          <layout class="QFormLayout" name="formLayout">
           <item row="0" column="0" colspan="2">
@@ -909,6 +916,8 @@ Frad Green</string>
  </widget>
  <tabstops>
   <tabstop>port</tabstop>
+  <tabstop>refresh</tabstop>
+  <tabstop>scroll</tabstop>
   <tabstop>nsmsgLine1</tabstop>
   <tabstop>nsmsgLine2</tabstop>
   <tabstop>smsgLine1</tabstop>
@@ -917,7 +926,19 @@ Frad Green</string>
   <tabstop>infoLine2</tabstop>
   <tabstop>infoLine3</tabstop>
   <tabstop>infoLine4</tabstop>
+  <tabstop>leftRgb</tabstop>
+  <tabstop>rightRgb</tabstop>
+  <tabstop>led1</tabstop>
+  <tabstop>led2</tabstop>
+  <tabstop>led3</tabstop>
+  <tabstop>led6</tabstop>
+  <tabstop>led5</tabstop>
+  <tabstop>led4</tabstop>
+  <tabstop>update</tabstop>
+  <tabstop>configure</tabstop>
+  <tabstop>program</tabstop>
   <tabstop>contacts</tabstop>
+  <tabstop>saveContacts</tabstop>
  </tabstops>
  <resources>
   <include location="icons/badgehacker/badgehacker.qrc"/>

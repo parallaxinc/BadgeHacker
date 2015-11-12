@@ -10,7 +10,7 @@
 
 Q_DECLARE_LOGGING_CATEGORY(badgehacker)
 
-class BadgeHacker : public QDialog 
+class BadgeHacker : public QWidget 
 {
     Q_OBJECT
 
@@ -26,6 +26,7 @@ private:
     QProgressDialog progress;
     int read_timeout;
     bool ack;
+//    bool pending_refresh;
     QString ledpattern;
     QStringList colornames;
 
@@ -43,6 +44,7 @@ private slots:
 
     void configure();
     void program();
+    void refresh();
     void update();
     void clear();
     void saveContacts();
@@ -50,6 +52,7 @@ private slots:
     void read_line();
     bool read_data(const QString & cmd = QString());
 
+    void wait_for_write();
     void write_line(const QString & line);
 
     void write_oneitem_line(const QString & cmd, 
