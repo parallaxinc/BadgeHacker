@@ -19,6 +19,7 @@ con { i2c address }
 
   EE_SIZE  =  64 * 1024
   PG_SIZE  = 128
+  LAST_PG  = EE_SIZE / PG_SIZE - 1
 
   ACK      = i2c#ACK
   NAK      = i2c#NAK

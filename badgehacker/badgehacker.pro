@@ -12,6 +12,7 @@ win32-msvc* {
 	PRE_TARGETDEPS += ../propellermanager/src/lib/libpropellermanager.a
 }
 
+PRE_TARGETDEPS += ../spin/jm_hackable_ebadge.binary
 
 CONFIG -= app_bundle debug_and_release
 
@@ -26,5 +27,5 @@ FORMS += \
     badgehacker.ui \
 
 RESOURCES += \
-    icons/badgehacker/badgehacker.qrc \
-    spin/spin.qrc \
+    ../icons/badgehacker/badgehacker.qrc \
+    ../spin/spin.qrc \

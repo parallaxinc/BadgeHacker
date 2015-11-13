@@ -1,17 +1,19 @@
 '' =================================================================================================
 ''
-''   File....... jm_hackable_ebadge__2015-11-08c.spin
+''   File....... jm_hackable_ebadge__2015-11-13a.spin
 ''   Purpose.... Demo code for Parallax Hackable badge
 ''   Author..... Jon "JonnyMac" McPhalen
 ''               Copyright (C) 2015 Jon McPhalen
 ''               -- see below for terms of use
 ''   E-mail..... jon@jonmcphalen.com
 ''   Started....
-''   Updated.... 05 NOV 2015
+''   Updated.... 13 NOV 2015
 ''
 '' =================================================================================================
 
 {
+  12 NOV 2015 -- Added LED settings persistence between power cycles
+
   08 NOV 2015 -- Updates to assist BadgeHacker
                  * added blank start-up message (CLS [#16], CLRDN [#12])
                    -- when AUTO_ME is NO
@@ -134,7 +136,11 @@
 
       Note: The jm_ebadge_leds object dated 31 OCT 2015 is required.
     
-}   
+}
+
+dat
+
+  DATE_CODE     byte    "Parallax eBadge 13 NOV 2015", 0         ' response to PING command
 
 
 con { timing }
@@ -370,6 +376,12 @@ dat { name & contact information }
   Msg9_1        byte    "  Wipe", 0
 
 
+  ' LEDs
+
+  BlueLeds      byte    0
+  RGBLeds       byte    0
+  
+
 pub main | c
 
   setup                                                          ' setup io and badge objects
@@ -405,6 +417,8 @@ pub main | c
 
 pub show_logo | n 
 
+  leds.clear                                                     ' clear leds
+
   dstate := MSG_LOGO                                             ' show OSH logo 1st
   update_display(LOGO_MILLIS)                                    ' display until forced change
 
@@ -420,7 +434,10 @@ pub show_logo | n
   dstate := MSG_NAME            
   update_display(posx)              
   scrollidx := -(NAME_CHARS-1)  
-  scrtmr.set(-SCROLL_MS)        
+  scrtmr.set(-SCROLL_MS)
+
+  leds.set_blue(BlueLeds)                                        ' restore user LED settings
+  leds.set_rgb(RGBLeds)       
 
  
 pub check_logo_shake | total, t 
@@ -939,6 +956,32 @@ pub update_acc_leds(x, y)
       leds.set_blue(1 << BLUE_4 | 1 << BLUE_1)  
 
 
+
+pub read_battery | level 
+
+'' Returns battery level
+'' -- value returned is RC charge time in microseconds
+'' -- will require calibration for volts
+
+  level := 0
+
+  ctra := %01100 << 26 | BATT_MON                                ' setup counter to measure low
+  frqa := 1
+  outa[BATT_MON] := 0
+  
+  repeat 4
+    dira[BATT_MON] := 1                                          ' discharge rc
+    waitcnt(cnt + (MS_001 << 1))
+    dira[BATT_MON] := 0                                          ' allow RC to charge
+    phsa := 0                                                    ' clear sample
+    repeat until ina[BATT_MON]                                   ' wait until finished
+    level += phsa                                                ' add sample to level
+
+  ctra := 0                                                      ' release counter
+
+  return (level >> 2) / US_001                                   ' return average of 4 reads
+
+  
 pub lamp_test
 
 '' Quick test of LEDs
@@ -1006,13 +1049,14 @@ con { enumerated parser tokens }
   #0, T_NSMSG, T_SMSG, T_SCROLL                                              { 
    }, T_NO, T_YES                                                            { 
    }, T_INFO, T_ME                                                           { 
-   }, T_CONTACTS, T_WIPE                                                             {
+   }, T_CONTACTS, T_WIPE                                                     {
    }, T_BUTTONS                                                              {    
    }, T_LED, T_ALL, T_OFF, T_ON                                              { 
    }, T_RGB, T_LEFT, T_RIGHT                                                 { 
    }, T_BLACK, T_BLUE, T_GREEN, T_CYAN, T_RED, T_MAGENTA, T_YELLOW, T_WHITE  {
    }, T_ACCEL, T_X, T_Y, T_Z                                                 {
    }, T_HELP                                                                 {
+   }, T_PING                                                                 { 
    }, TOKEN_COUNT
     
 
@@ -1056,6 +1100,7 @@ dat { valid command tokens }
                 byte    "Y", 0
                 byte    "Z", 0
                 byte    "HELP", 0
+                byte    "PING", 0
 
 
   HELP_MSG      byte    "Commands:", 13
@@ -1095,10 +1140,11 @@ pub process_cmd | tidx
     T_LED      : get_led 
     T_RGB      : get_rgb
     T_ACCEL    : get_accel
+    T_PING     : ping_reply 
     other      : show_help
 
 
-pub get_nonscroll_msg | n
+pub get_nonscroll_msg | n, len
 
 '' Get non-scrolling message elements
 
@@ -1119,14 +1165,22 @@ pub get_nonscroll_msg | n
     n := parser.token_value(1)                                   '  get its value (should be 1 or 2)
     if (n == 1)
       update_str(@NSMsg0, parser.token_addr(2), 8)
+      fix_nsmsg(@NSMsg0)
+      ee_save_str(@NSMsg0)  
+
     elseif (n == 2)
-      update_str(@NSMsg1, parser.token_addr(2), 8) 
+      update_str(@NSMsg1, parser.token_addr(2), 8)
+      fix_nsmsg(@NSMsg1)
+      ee_save_str(@NSMsg1)  
+      
     else
       show_help
 
   else                                                           ' two strings submitted
-    update_str(@NSMsg0, parser.token_addr(1), 8)   
+    update_str(@NSMsg0, parser.token_addr(1), 8)
+    fix_nsmsg(@NSMsg0)   
     update_str(@NSMsg1, parser.token_addr(2), 8)
+    fix_nsmsg(@NSMsg1)
 
   if (AUTO_ME == YES)
     show_me(-1)
@@ -1136,6 +1190,17 @@ pub get_nonscroll_msg | n
 
   refresh_nsmsg(false)                                           ' update display
 
+
+pub fix_nsmsg(p_str) | len, idx
+
+'' Fixes non-scrolling message string to 8 characters
+
+  len := strsize(p_str)
+  if (len < 8)
+    repeat idx from len to 7
+      byte[p_str][idx] := " "  
+    byte[p_str][8] := 0
+  
   
 pub refresh_nsmsg(checksd)
 
@@ -1173,16 +1238,21 @@ pub get_scrolling_msg  | n, tlen
     if (n == 1)
       update_str(@SMsg0, parser.token_addr(2), 31)
       setup_smsg
+      ee_save_str(@SMsg0) 
     elseif (n == 2)
       update_str(@SMsg1, parser.token_addr(2), 31)
-      setup_smsg 
+      setup_smsg
+      ee_save_str(@SMsg1)  
     else
       show_help
 
   else                                                           ' two strings submitted
-    update_str(@SMsg0, parser.token_addr(1), 31)   
+    update_str(@SMsg0, parser.token_addr(1), 31)
+    setup_smsg           
+    ee_save_str(@SMsg0)     
     update_str(@SMsg1, parser.token_addr(2), 31)
     setup_smsg
+    ee_save_str(@SMsg1)  
 
   if (AUTO_ME == YES)
     show_me(-1)
@@ -1199,8 +1269,7 @@ pub update_str(p_dest, p_src, maxlen) | len
   len := strsize(p_src) <# maxlen                                ' determine/limit source string size
 
   bytefill(p_dest, 0, maxlen+1)                                  ' clear old string                        
-  bytemove(p_dest, p_src, len)                                   ' copy new     
-  ee_save_str(p_dest)                                            ' save to eeprom                             
+  bytemove(p_dest, p_src, len)                                   ' copy new                       
 
 
 pub get_scroll | tidx
@@ -1257,10 +1326,14 @@ pub get_info | n, p_str, tlen
     return
 
   if (parser.token_count == 5)                                   ' everything in one go?
-    update_str(@MyInfo0, parser.token_addr(1), 31) 
-    update_str(@MyInfo1, parser.token_addr(2), 31) 
-    update_str(@MyInfo2, parser.token_addr(3), 31) 
+    update_str(@MyInfo0, parser.token_addr(1), 31)
+    ee_save_str(@MyInfo0)
+    update_str(@MyInfo1, parser.token_addr(2), 31)
+    ee_save_str(@MyInfo1)  
+    update_str(@MyInfo2, parser.token_addr(3), 31)
+    ee_save_str(@MyInfo2)  
     update_str(@MyInfo3, parser.token_addr(4), 31)
+    ee_save_str(@MyInfo3) 
     term.tx(term#CLS) 
     term.tx(term#CLRDN) 
     return
@@ -1279,10 +1352,21 @@ pub get_info | n, p_str, tlen
       return
 
   case n
-    1 : update_str(@MyInfo0, parser.token_addr(2), 31)
-    2 : update_str(@MyInfo1, parser.token_addr(2), 31)   
-    3 : update_str(@MyInfo2, parser.token_addr(2), 31)           
-    4 : update_str(@MyInfo3, parser.token_addr(2), 31)
+    1 :
+      update_str(@MyInfo0, parser.token_addr(2), 31)
+      ee_save_str(@MyInfo0)
+      
+    2 :
+      update_str(@MyInfo1, parser.token_addr(2), 31)
+      ee_save_str(@MyInfo1)
+         
+    3 :
+      update_str(@MyInfo2, parser.token_addr(2), 31)
+      ee_save_str(@MyInfo2)
+                 
+    4 :
+      update_str(@MyInfo3, parser.token_addr(2), 31)
+      ee_save_str(@MyInfo3) 
 
   if (AUTO_ME == YES)
     show_me(-1)
@@ -1417,6 +1501,14 @@ pub get_led | n, tidx
 
 '' Update LED(s) near button pads
 
+  if (parser.token_count == 1)                                   ' requesting current state?
+    term.tx(term#CLS)
+    term.tx("%")
+    term.bin(BlueLeds, 6)
+    term.tx(term#CR)
+    term.tx(term#CLRDN)
+    return
+
   if (parser.token_count <> 3)                                   ' check token count
     show_help
     return
@@ -1430,13 +1522,16 @@ pub get_led | n, tidx
       tidx := parser.get_token_id(parser.token_addr(2))          ' get index of command
       case tidx       
         T_ON, T_YES :
-          leds.blue_on(n) 
+          BlueLeds := leds.blue_on(n)
         T_OFF, T_NO :
-          leds.blue_off(n) 
+          BlueLeds := leds.blue_off(n)
         other :
           show_help
           return
 
+      ee.wr_byte(@BlueLeds, BlueLeds)
+      return
+      
     else
       show_help
       return
@@ -1445,26 +1540,37 @@ pub get_led | n, tidx
   
   if (tidx == T_ALL)  
     if (parser.token_is_number(2))
-      leds.set_blue(parser.token_value(2))
+      BlueLeds := leds.set_blue(parser.token_value(2))
     else
       tidx := parser.get_token_id(parser.token_addr(2))
       case tidx
         T_ON, T_YES :
-          leds.set_blue(%111111) 
+          BlueLeds := leds.set_blue(%111111)
         T_OFF, T_NO :
-          leds.set_blue(%000000)
+          BlueLeds := leds.set_blue(%000000)
         other :
           show_help 
           return
-          
+         
   else
     show_help
     return
+
+  ee.wr_byte(@BlueLeds, BlueLeds)
+  return    
 
         
 pub get_rgb | tidx, n, c1, c0
 
 '' Update RGB LED(s)
+
+  if (parser.token_count == 1)                                   ' requesting current state?
+    term.tx(term#CLS)
+    term.tx("%")
+    term.bin(RGBLeds, 6)
+    term.tx(term#CR)
+    term.tx(term#CLRDN)
+    return
 
   if (parser.token_count <> 3)
     show_help
@@ -1479,7 +1585,8 @@ pub get_rgb | tidx, n, c1, c0
     n := parser.token_value(1)                                   ' get module (1 or 0)
     c1 := token_to_color(2)                                      ' get color
     if ((n => 0) and (n =< 1) and (c1 => 0))                     ' if valid color
-      leds.set_rgbn(n, c1)
+      RGBLeds := leds.set_rgbn(n, c1)
+      ee.wr_byte(@RGBLeds, RGBLeds) 
     else
       show_help
     return
@@ -1491,9 +1598,11 @@ pub get_rgb | tidx, n, c1, c0
     c1 := token_to_color(2)
     if (c1 => 0)
       if (tidx == T_LEFT)
-        leds.set_rgb1(c1)
+        RGBLeds := leds.set_rgb1(c1)
+        ee.wr_byte(@RGBLeds, RGBLeds)  
       else
-        leds.set_rgb0(c1)
+        RGBLeds := leds.set_rgb0(c1)
+        ee.wr_byte(@RGBLeds, RGBLeds)  
     else
       show_help
     return
@@ -1503,9 +1612,10 @@ pub get_rgb | tidx, n, c1, c0
   c1 := token_to_color(1)  
   c0 := token_to_color(2)
   if ((c1 => 0) and (c0 => 0))
-    leds.set_rgbx(c1, c0)
+    RGBLeds := leds.set_rgbx(c1, c0)
+    ee.wr_byte(@RGBLeds, RGBLeds)   
   else
-    show_help      
+    show_help
 
 
 pub token_to_color(n) | tidx
@@ -1587,15 +1697,20 @@ pub show_help
   term.tx(term#CLS)
   term.str(@HELP_MSG)
   term.tx(term#CLRDN)
-            
 
-pub ee_save_str(p_str) 
 
-  if (strsize(p_str) == 0)                                       ' check size
-    return
+pub ping_reply
 
-  ee.wr_str(p_str, p_str)                                        ' save the string to ee
+  term.tx(term#CLS)
+  term.str(@DATE_CODE)
+  term.tx(term#CR)
+  term.tx(term#CLRDN)
+        
 
+pub ee_save_str(p_str)
+
+  ee.wr_str(p_str, p_str)
+  
 
 dat { Circle with Simon Denny }
 

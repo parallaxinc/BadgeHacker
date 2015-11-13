@@ -7,7 +7,8 @@
 ''               -- see below for terms of use
 ''   E-mail..... jon@jonmcphalen.com
 ''   Started....
-''   Updated.... 31 OCT 2015
+''   Updated.... 12 NOV 2015
+''               -- added confirmation return in set methods
 ''               -- changed rgb references from 2 and 1 to 1 and 0
 ''               -- added set_rgbn() method 
 ''
@@ -109,7 +110,9 @@ pub blue_on(n)
 
   if ((n => 0) and (n =< 5))                                     ' valid LED?
     ledbits.byte[0] |= 1 << n                                    ' turn it on  
-    
+
+  return ledbits.byte[0]
+  
 
 pub blue_off(n)
 
@@ -118,6 +121,8 @@ pub blue_off(n)
   if ((n => 0) and (n =< 5))                                     ' valid LED?
     ledbits.byte[0] &= !(1 << n)                                 ' turn it off
 
+  return ledbits.byte[0]
+    
 
 pub set_blue(bits)
 
@@ -125,6 +130,8 @@ pub set_blue(bits)
 
   ledbits.byte[0] := bits & %00111111                            ' update all blue LEDs
 
+  return ledbits.byte[0]
+  
 
 pub set_rgbn(n, bits)
 
@@ -133,9 +140,9 @@ pub set_rgbn(n, bits)
 ''    * see color constants (above)
 
   if (n == 0)
-    set_rgb0(bits)
+    return set_rgb0(bits)  
   elseif (n == 1)
-    set_rgb1(bits)   
+    return set_rgb1(bits)   
 
 
 pub set_rgb0(bits)
@@ -144,8 +151,10 @@ pub set_rgb0(bits)
 '' -- bits passed as 3-bit binary in form: %rgb
 ''    * see color constants (above)
 
-  ledbits.byte[1] := (ledbits.byte[1] & %00111000) | (bits & %111) 
+  ledbits.byte[1] := (ledbits.byte[1] & %00111000) | (bits & %111)
 
+  return ledbits.byte[1]
+  
   
 pub set_rgb1(bits)
 
@@ -153,7 +162,9 @@ pub set_rgb1(bits)
 '' -- bits passed as 3-bit binary in form: %rgb
 ''    * see color constants (above)
 
-  ledbits.byte[1] := (ledbits.byte[1] & %00000111) | ((bits & %111) << 3)   
+  ledbits.byte[1] := (ledbits.byte[1] & %00000111) | ((bits & %111) << 3)
+
+  return ledbits.byte[1] 
 
 
 pub set_rgbx(bits1, bits0)
@@ -164,12 +175,16 @@ pub set_rgbx(bits1, bits0)
 
   ledbits.byte[1] := ((bits1 & %111) << 3) | (bits0 & %111)
 
+  return ledbits.byte[1]
+
 
 pub set_rgb(bits)
 
 '' Set rgb LEDs with single value 
 
   ledbits.byte[1] := bits & %00111111                            ' update all rgb LEDs
+
+  return ledbits.byte[1]
   
 
 pub set_all(bits)
@@ -180,12 +195,39 @@ pub set_all(bits)
 
   ledbits := bits
 
+  return ledbits
+
 
 pub clear
 
 '' Clears all LEDs
 
   ledbits := $00_00                                              ' clear rgb and blue leds
+
+  return ledbits
+
+
+pub get_blue
+
+'' Return state of blue LEDs
+
+  return ledbits.byte[0]
+
+
+pub get_rgb
+
+'' return state of rgb leds (packed byte = %00rgbrgb)
+
+  return ledbits.byte[1]
+
+
+pub get_all
+
+'' Returns all LED bits
+'' -- upper byte is rgb modules
+'' -- lower byte is blue leds
+
+  return ledbits & %00111111_00111111
   
 
 dat { pasm charlieplex driver }
