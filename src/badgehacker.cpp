@@ -6,9 +6,11 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QPixmap>
+#include <QTextStream>
+#include <QMessageBox>
 
-#include "propellerloader.h"
-#include "propellerimage.h"
+#include <PropellerLoader>
+#include <PropellerImage>
 
 Q_LOGGING_CATEGORY(badgehacker, "BadgeHacker")
 
@@ -38,6 +40,10 @@ BadgeHacker::BadgeHacker(PropellerManager * manager,
             ui.rightRgb->addItem(pix, colorname);
     }
 
+
+    updatePorts();
+    ui.contacts->clear();
+
     connect(manager, SIGNAL(portListChanged()), this, SLOT(updatePorts()));
     connect(session, SIGNAL(sendError(const QString &)), this, SLOT(handleError()));
     connect(session, SIGNAL(readyRead()), this, SLOT(read_line()));
@@ -45,39 +51,14 @@ BadgeHacker::BadgeHacker(PropellerManager * manager,
     connect(ui.port, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(portChanged()));
     connect(ui.configure, SIGNAL(clicked()), this, SLOT(configure()));
     connect(ui.program, SIGNAL(clicked()), this, SLOT(program()));
-    connect(ui.update, SIGNAL(clicked()), this, SLOT(update()));
-    connect(ui.refresh, SIGNAL(clicked()), this, SLOT(refresh()));
     connect(ui.saveContacts, SIGNAL(clicked()), this, SLOT(saveContacts()));
 
-    ui.program->hide();
-    ui.configure->hide();
-    ui.update->hide();
+    connect(ui.refresh, SIGNAL(clicked()), this, SLOT(refresh()));
+    connect(ui.reset, SIGNAL(clicked()), this, SLOT(reset()));
 
-    connect(ui.nsmsgLine1,  SIGNAL(editingFinished()), this, SLOT(write_nsmsg1()));
-    connect(ui.nsmsgLine2,  SIGNAL(editingFinished()), this, SLOT(write_nsmsg2()));
+    connect(ui.activeButton, SIGNAL(toggled(bool)), this, SLOT(handleEnable(bool)));
 
-    connect(ui.smsgLine1,   SIGNAL(editingFinished()), this, SLOT(write_smsg1()));
-    connect(ui.smsgLine2,   SIGNAL(editingFinished()), this, SLOT(write_smsg2()));
-
-    connect(ui.infoLine1,   SIGNAL(editingFinished()), this, SLOT(write_info1()));
-    connect(ui.infoLine2,   SIGNAL(editingFinished()), this, SLOT(write_info2()));
-    connect(ui.infoLine3,   SIGNAL(editingFinished()), this, SLOT(write_info3()));
-    connect(ui.infoLine4,   SIGNAL(editingFinished()), this, SLOT(write_info4()));
-
-    connect(ui.scroll,      SIGNAL(stateChanged(int)), this, SLOT(write_scroll()));
-
-    connect(ui.led1,        SIGNAL(stateChanged(int)), this, SLOT(write_led()));
-    connect(ui.led2,        SIGNAL(stateChanged(int)), this, SLOT(write_led()));
-    connect(ui.led3,        SIGNAL(stateChanged(int)), this, SLOT(write_led()));
-    connect(ui.led4,        SIGNAL(stateChanged(int)), this, SLOT(write_led()));
-    connect(ui.led5,        SIGNAL(stateChanged(int)), this, SLOT(write_led()));
-    connect(ui.led6,        SIGNAL(stateChanged(int)), this, SLOT(write_led()));
-
-    connect(ui.leftRgb,     SIGNAL(currentIndexChanged(int)), this, SLOT(write_leftrgb()));
-    connect(ui.rightRgb,    SIGNAL(currentIndexChanged(int)), this, SLOT(write_rightrgb()));
-
-    ui.contacts->clear();
-    updatePorts();
+    session->reset();
 }
 
 BadgeHacker::~BadgeHacker()
@@ -115,9 +96,14 @@ void BadgeHacker::refresh()
     progress.setCancelButton(0);
     progress.setWindowTitle(tr("Loading..."));
     progress.setLabelText(tr("Waiting for badge..."));
+    progress.setValue(0);
     progress.show();
 
-    if (blank())
+    clear();
+    if (!session->isOpen())
+        blank();
+
+    if (ping())
         update();
 
     progress.setValue(100);
@@ -126,24 +112,59 @@ void BadgeHacker::refresh()
     setEnabled(true);
 }
 
+void BadgeHacker::handleEnable(bool checked)
+{
+    if (checked)
+        open();
+    else
+        closed();
+}
+
+
 void BadgeHacker::open()
 {
-    ui.activeLight->setPixmap(QPixmap(":/icons/propterm/led-green.png"));
+    setEnabled(false);
+
     portChanged();
     session->unpause();
+    ui.activeLight->setPixmap(QPixmap(":/icons/propterm/led-green.png"));
 
-    refresh();
+    setEnabled(true);
 }
 
 void BadgeHacker::closed()
 {
-    ui.activeLight->setPixmap(QPixmap(":/icons/propterm/led-off.png"));
     session->pause();
+    clear();
+    ui.activeLight->setPixmap(QPixmap(":/icons/propterm/led-off.png"));
+
+    setEnabled(false);
 }
 
 void BadgeHacker::portChanged()
 {
     session->setPortName(ui.port->currentText());
+}
+
+void BadgeHacker::reset()
+{
+    setEnabled(false);
+
+    progress.setCancelButton(0);
+    progress.setWindowTitle(tr("Loading..."));
+    progress.setLabelText(tr("Waiting for badge..."));
+    progress.setValue(0);
+    progress.show();
+
+    clear();
+
+    if (blank())
+        refresh();
+
+    progress.setValue(100);
+    progress.hide();
+
+    setEnabled(true);
 }
 
 void BadgeHacker::handleError()
@@ -171,10 +192,10 @@ void BadgeHacker::read_line()
 //    timer.start(read_timeout);
 }
 
-bool BadgeHacker::read_data(const QString & cmd)
+bool BadgeHacker::read_data(const QString & cmd, int timeout)
 {
     ack = false;
-    timer.start(5000);
+    timer.start(timeout);
 
     QEventLoop loop;
     connect(this, SIGNAL(finished()), &loop, SLOT(quit()));
@@ -185,6 +206,7 @@ bool BadgeHacker::read_data(const QString & cmd)
 
     loop.exec();
 
+    rawreply = reply;
     reply = reply.mid(reply.indexOf(16), reply.lastIndexOf(12)); //16,"CLS"   12,"CLRDN"
     reply = reply.remove(16).remove(12);
     replystrings = reply.split("\r",QString::KeepEmptyParts);
@@ -205,7 +227,7 @@ bool BadgeHacker::read_data(const QString & cmd)
 bool BadgeHacker::blank()
 {
     session->reset();
-    return read_data();
+    return read_data(QString(), 5000);
 }
 
 void BadgeHacker::nsmsg()
@@ -259,6 +281,89 @@ void BadgeHacker::info()
     ui.infoLine4->setEnabled(true);
 }
 
+void BadgeHacker::led()
+{
+    read_data("led");
+
+    if (replystrings.size() < 1) return;
+    ledpattern = replystrings[0];
+    ledpattern.remove(0, 1);
+
+    ui.led1->setChecked(ledpattern[0] == '1' ? true : false);
+    ui.led2->setChecked(ledpattern[1] == '1' ? true : false);
+    ui.led3->setChecked(ledpattern[2] == '1' ? true : false);
+    ui.led4->setChecked(ledpattern[3] == '1' ? true : false);
+    ui.led5->setChecked(ledpattern[4] == '1' ? true : false);
+    ui.led6->setChecked(ledpattern[5] == '1' ? true : false);
+
+    ui.led1->setEnabled(true);
+    ui.led2->setEnabled(true);
+    ui.led3->setEnabled(true);
+    ui.led4->setEnabled(true);
+    ui.led5->setEnabled(true);
+    ui.led6->setEnabled(true);
+}
+
+const QString BadgeHacker::rgbPatternToString(const QString & string)
+{
+    QString color;
+    int i = string.toInt();
+    switch (i)
+    {
+        case 0:   color = "black";  break ;;
+        case 1:   color = "blue";   break ;;
+        case 10:  color = "green";  break ;;
+        case 11:  color = "cyan";   break ;;
+        case 100: color = "red";    break ;;
+        case 101: color = "magenta";break ;;
+        case 110: color = "yellow"; break ;;
+        case 111: color = "white";  break ;;
+    }
+    return color;
+}
+
+void BadgeHacker::rgb()
+{
+    read_data("rgb");
+
+    if (replystrings.size() < 1) return;
+    QString colors = replystrings[0].remove(0,1);
+    ui.leftRgb->setCurrentIndex( ui.leftRgb->findText( rgbPatternToString(colors.left(3))));
+    ui.rightRgb->setCurrentIndex(ui.rightRgb->findText(rgbPatternToString(colors.right(3))));
+
+    ui.leftRgb->setEnabled(true);
+    ui.rightRgb->setEnabled(true);
+}
+
+bool BadgeHacker::ping()
+{
+    read_data("ping");
+
+    if (rawreply.isEmpty() || replystrings.size() < 1) return false;
+
+    QString version = replystrings[0];
+
+    if ( version != "Parallax eBadge 13 NOV 2015" )
+    {
+        QMessageBox box(QMessageBox::Warning,
+                tr("Update Badge Software?"),
+                tr("Incompatible badge software detected (%1). "
+                   "Would you like to install new software?\n\n"
+                   "NOTE: This will overwrite all contacts!")
+                        .arg(version));
+        box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+
+        int ret = box.exec();
+        if (ret == QMessageBox::Yes)
+        {
+            program();
+            blank();
+        }
+    }
+
+    return true;
+}
+
 void BadgeHacker::contacts()
 {
     read_data("contacts");
@@ -292,7 +397,6 @@ void BadgeHacker::wait_for_write()
         QEventLoop loop;
         connect(&wait, SIGNAL(timeout()), &loop, SLOT(quit()));
     //    wait.start(session->calculateTimeout(line.size())+10*line.size());
-    //    qDebug() << session->calculateTimeout(line.size());
         wait.start(updateTimer.remainingTime());
         loop.exec();
         disconnect(&wait, SIGNAL(timeout()), &loop, SLOT(quit()));
@@ -365,6 +469,32 @@ void BadgeHacker::write_rightrgb() { write_oneitem_line("rgb right",ui.rightRgb-
 
 void BadgeHacker::setEnabled(bool enabled)
 {
+    if (!enabled)
+    {
+        disconnect(ui.nsmsgLine1,  SIGNAL(editingFinished()), this, SLOT(write_nsmsg1()));
+        disconnect(ui.nsmsgLine2,  SIGNAL(editingFinished()), this, SLOT(write_nsmsg2()));
+
+        disconnect(ui.smsgLine1,   SIGNAL(editingFinished()), this, SLOT(write_smsg1()));
+        disconnect(ui.smsgLine2,   SIGNAL(editingFinished()), this, SLOT(write_smsg2()));
+
+        disconnect(ui.infoLine1,   SIGNAL(editingFinished()), this, SLOT(write_info1()));
+        disconnect(ui.infoLine2,   SIGNAL(editingFinished()), this, SLOT(write_info2()));
+        disconnect(ui.infoLine3,   SIGNAL(editingFinished()), this, SLOT(write_info3()));
+        disconnect(ui.infoLine4,   SIGNAL(editingFinished()), this, SLOT(write_info4()));
+
+        disconnect(ui.scroll,      SIGNAL(stateChanged(int)), this, SLOT(write_scroll()));
+
+        disconnect(ui.led1,        SIGNAL(stateChanged(int)), this, SLOT(write_led()));
+        disconnect(ui.led2,        SIGNAL(stateChanged(int)), this, SLOT(write_led()));
+        disconnect(ui.led3,        SIGNAL(stateChanged(int)), this, SLOT(write_led()));
+        disconnect(ui.led4,        SIGNAL(stateChanged(int)), this, SLOT(write_led()));
+        disconnect(ui.led5,        SIGNAL(stateChanged(int)), this, SLOT(write_led()));
+        disconnect(ui.led6,        SIGNAL(stateChanged(int)), this, SLOT(write_led()));
+
+        disconnect(ui.leftRgb,     SIGNAL(currentIndexChanged(int)), this, SLOT(write_leftrgb()));
+        disconnect(ui.rightRgb,    SIGNAL(currentIndexChanged(int)), this, SLOT(write_rightrgb()));
+    }
+
     ui.scroll    ->setEnabled(enabled);
     ui.nsmsgLine1->setEnabled(enabled);
     ui.nsmsgLine2->setEnabled(enabled);
@@ -386,12 +516,38 @@ void BadgeHacker::setEnabled(bool enabled)
     ui.led5->setEnabled(enabled);
     ui.led6->setEnabled(enabled);
 
-    ui.update->setEnabled(enabled);
     ui.configure->setEnabled(enabled);
     ui.program->setEnabled(enabled);
-    ui.saveContacts->setEnabled(enabled);
 
     ui.refresh->setEnabled(enabled);
+    ui.port->setEnabled(enabled);
+    ui.reset->setEnabled(enabled);
+
+    if (enabled)
+    {
+        connect(ui.nsmsgLine1,  SIGNAL(editingFinished()), this, SLOT(write_nsmsg1()));
+        connect(ui.nsmsgLine2,  SIGNAL(editingFinished()), this, SLOT(write_nsmsg2()));
+    
+        connect(ui.smsgLine1,   SIGNAL(editingFinished()), this, SLOT(write_smsg1()));
+        connect(ui.smsgLine2,   SIGNAL(editingFinished()), this, SLOT(write_smsg2()));
+    
+        connect(ui.infoLine1,   SIGNAL(editingFinished()), this, SLOT(write_info1()));
+        connect(ui.infoLine2,   SIGNAL(editingFinished()), this, SLOT(write_info2()));
+        connect(ui.infoLine3,   SIGNAL(editingFinished()), this, SLOT(write_info3()));
+        connect(ui.infoLine4,   SIGNAL(editingFinished()), this, SLOT(write_info4()));
+    
+        connect(ui.scroll,      SIGNAL(stateChanged(int)), this, SLOT(write_scroll()));
+    
+        connect(ui.led1,        SIGNAL(stateChanged(int)), this, SLOT(write_led()));
+        connect(ui.led2,        SIGNAL(stateChanged(int)), this, SLOT(write_led()));
+        connect(ui.led3,        SIGNAL(stateChanged(int)), this, SLOT(write_led()));
+        connect(ui.led4,        SIGNAL(stateChanged(int)), this, SLOT(write_led()));
+        connect(ui.led5,        SIGNAL(stateChanged(int)), this, SLOT(write_led()));
+        connect(ui.led6,        SIGNAL(stateChanged(int)), this, SLOT(write_led()));
+    
+        connect(ui.leftRgb,     SIGNAL(currentIndexChanged(int)), this, SLOT(write_leftrgb()));
+        connect(ui.rightRgb,    SIGNAL(currentIndexChanged(int)), this, SLOT(write_rightrgb()));
+    }
 }
 
 void BadgeHacker::configure()
@@ -407,24 +563,23 @@ void BadgeHacker::configure()
     write_info2();
     write_info3();
     write_info4();
-    write_led();
     write_leftrgb();
     write_rightrgb();
+    write_led();
 }
 
 void BadgeHacker::update()
 {
     qCDebug(badgehacker) << "Getting info from" << session->portName();
 
-    progress.show();
     progress.setValue(0);
     clear();
 
     progress.setLabelText(tr("Getting scroll enable..."));
-    progress.setValue(50);
+    progress.setValue(10);
     scroll();
 
-    progress.setLabelText(tr("Getting badge text..."));
+    progress.setLabelText(tr("Getting non-scrolling text..."));
     progress.setValue(20);
     nsmsg();
 
@@ -432,9 +587,15 @@ void BadgeHacker::update()
     progress.setValue(40);
     smsg();
 
-    progress.setLabelText(tr("Getting scroll enable..."));
-    progress.setValue(60);
+    progress.setLabelText(tr("Getting shareable info..."));
+    progress.setValue(50);
     info();
+
+
+    progress.setLabelText(tr("Getting LED config..."));
+    progress.setValue(50);
+    rgb();
+    led();
 
     progress.setLabelText(tr("Getting contacts..."));
     progress.setValue(70);
@@ -461,7 +622,7 @@ void BadgeHacker::clear()
     ui.contacts->clear();
 }
 
-void BadgeHacker::program()
+bool BadgeHacker::program()
 {
     qCDebug(badgehacker) << "Programming badge on" << session->portName();
     PropellerLoader loader(manager, ui.port->currentText());
@@ -470,22 +631,23 @@ void BadgeHacker::program()
     file.open(QIODevice::ReadOnly);
 
     PropellerImage image = PropellerImage(file.readAll());
-    loader.upload(image, true);
+    return loader.upload(image, true);
 }
 
 void BadgeHacker::saveContacts()
 {
     qCDebug(badgehacker) << "Saving contacts from" << session->portName();
 
-    QString filename = QFileDialog::getSaveFileName(this,
-            tr("Save File As..."), 
-            QDir::homePath(), 
-            tr("Text Files (*.txt)"));
+    QFileDialog dialog(this, tr("Save Contacts"), QDir::homePath()+"/contacts.txt", tr("Text Files (*.txt)"));
+    dialog.setDefaultSuffix("txt");
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+
+    QString filename;
+    if (dialog.exec())
+        filename = dialog.selectedFiles()[0];
 
     if (filename.isEmpty())
         return;
-
-    filename += ".txt";
 
     QFile file(filename);
     if (!file.open(QFile::WriteOnly | QFile::Text))
@@ -497,4 +659,10 @@ void BadgeHacker::saveContacts()
         return;
     }
 
+    QTextStream out(&file);
+    out.setCodec("UTF-8");
+    out << ui.contacts->toPlainText();
+    out.flush();
+
+    file.close();
 }

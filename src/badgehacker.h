@@ -5,7 +5,8 @@
 #include <QLoggingCategory>
 #include <QProgressDialog>
 
-#include "propellersession.h"
+#include <PropellerSession>
+
 #include "ui_badgehacker.h"
 
 Q_DECLARE_LOGGING_CATEGORY(badgehacker)
@@ -19,6 +20,7 @@ private:
     PropellerManager * manager;
     PropellerSession * session;
 
+    QString rawreply;
     QString reply;
     QStringList replystrings;
     QTimer timer;
@@ -26,8 +28,8 @@ private:
     QProgressDialog progress;
     int read_timeout;
     bool ack;
-//    bool pending_refresh;
     QString ledpattern;
+    const QString rgbPatternToString(const QString & string);
     QStringList colornames;
 
 public:
@@ -37,20 +39,22 @@ public:
 private slots:
     void open();
     void closed();
+    void handleEnable(bool checked);
     void handleError();
     void portChanged();
     void updatePorts();
     void setEnabled(bool enabled);
 
     void configure();
-    void program();
+    bool program();
     void refresh();
+    void reset();
     void update();
     void clear();
     void saveContacts();
 
     void read_line();
-    bool read_data(const QString & cmd = QString());
+    bool read_data(const QString & cmd = QString(), int timeout = 300);
 
     void wait_for_write();
     void write_line(const QString & line);
@@ -75,11 +79,15 @@ private slots:
     void write_rightrgb();
 
     bool blank();
+    bool ping();
+
     void nsmsg();
     void smsg();
     void scroll();
     void info();
     void contacts();
+    void led();
+    void rgb();
 
 signals:
     void finished();

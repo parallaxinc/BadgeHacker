@@ -1,9 +1,9 @@
 TEMPLATE  = subdirs
 
 SUBDIRS = \
-    propellermanager/src/lib \
+    propellermanager/src \
     spin \
-    badgehacker \
+    src \
 
-badgehacker.depends = propellermanager/src/lib
-badgehacker.depends = spin
+src.depends += propellermanager/src
+src.depends += spin
