@@ -12,8 +12,8 @@ apptype: tools
 
 program: BadgeHacker
 repo: https://github.com/parallaxinc/BadgeHacker/releases
-version: 0.1.3
-image: screenshots/badgehacker.png
+version: 0.4.0
+image: screenshots/badgehacker2.png
 
 links:
   Source Code: https://github.com/parallaxinc/BadgeHacker
@@ -23,19 +23,19 @@ links:
 platforms:
   -  name: Windows
      suffix: amd64.exe
-     version: '0.1.3'
+     version: '0.4.0'
 
   -  name: Mac OS X
      suffix: amd64.dmg
-     version: '0.1.3'
+     version: '0.4.0'
 
   -  name: Linux
      suffix: amd64.deb
-     version: '0.1.3'
+     version: '0.4.0'
 
   -  name: Raspberry Pi
      suffix: armhf.deb
-     version: '0.1.3'
+     version: '0.4.0'
 
 ---
 
