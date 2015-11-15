@@ -1,13 +1,13 @@
 '' =================================================================================================
 ''
-''   File....... jm_hackable_ebadge__2015-11-13a.spin
+''   File....... jm_hackable_ebadge__2015-11-14.spin
 ''   Purpose.... Demo code for Parallax Hackable badge
 ''   Author..... Jon "JonnyMac" McPhalen
 ''               Copyright (C) 2015 Jon McPhalen
 ''               -- see below for terms of use
 ''   E-mail..... jon@jonmcphalen.com
 ''   Started....
-''   Updated.... 13 NOV 2015
+''   Updated.... 14 NOV 2015
 ''
 '' =================================================================================================
 
@@ -134,13 +134,13 @@
         RGB RIGHT RED
         RGB 0 RED
 
-      Note: The jm_ebadge_leds object dated 31 OCT 2015 is required.
+      Note: The jm_ebadge_leds object dated 12 NOV 2015 is required.
     
 }
 
 dat
 
-  DATE_CODE     byte    "Parallax eBadge 13 NOV 2015", 0         ' response to PING command
+  DATE_CODE     byte    "Parallax eBadge 14 NOV 2015", 0         ' response to PING command
 
 
 con { timing }
@@ -1178,9 +1178,11 @@ pub get_nonscroll_msg | n, len
 
   else                                                           ' two strings submitted
     update_str(@NSMsg0, parser.token_addr(1), 8)
-    fix_nsmsg(@NSMsg0)   
+    fix_nsmsg(@NSMsg0)
+    ee_save_str(@NSMsg0)    
     update_str(@NSMsg1, parser.token_addr(2), 8)
     fix_nsmsg(@NSMsg1)
+    ee_save_str(@NSMsg1)   
 
   if (AUTO_ME == YES)
     show_me(-1)
@@ -1501,8 +1503,9 @@ pub get_led | n, tidx
 
 '' Update LED(s) near button pads
 
+  term.tx(term#CLS)
+
   if (parser.token_count == 1)                                   ' requesting current state?
-    term.tx(term#CLS)
     term.tx("%")
     term.bin(BlueLeds, 6)
     term.tx(term#CR)
@@ -1530,6 +1533,8 @@ pub get_led | n, tidx
           return
 
       ee.wr_byte(@BlueLeds, BlueLeds)
+      term.tx(term#CR)    
+      term.tx(term#CLRDN) 
       return
       
     else
@@ -1551,21 +1556,24 @@ pub get_led | n, tidx
         other :
           show_help 
           return
+
+    ee.wr_byte(@BlueLeds, BlueLeds)
+    term.tx(term#CR)    
+    term.tx(term#CLRDN)
+    return              
          
   else
     show_help
     return
-
-  ee.wr_byte(@BlueLeds, BlueLeds)
-  return    
 
         
 pub get_rgb | tidx, n, c1, c0
 
 '' Update RGB LED(s)
 
+  term.tx(term#CLS)
+
   if (parser.token_count == 1)                                   ' requesting current state?
-    term.tx(term#CLS)
     term.tx("%")
     term.bin(RGBLeds, 6)
     term.tx(term#CR)
@@ -1586,7 +1594,9 @@ pub get_rgb | tidx, n, c1, c0
     c1 := token_to_color(2)                                      ' get color
     if ((n => 0) and (n =< 1) and (c1 => 0))                     ' if valid color
       RGBLeds := leds.set_rgbn(n, c1)
-      ee.wr_byte(@RGBLeds, RGBLeds) 
+      ee.wr_byte(@RGBLeds, RGBLeds)
+      term.tx(term#CR)     
+      term.tx(term#CLRDN)  
     else
       show_help
     return
@@ -1602,7 +1612,9 @@ pub get_rgb | tidx, n, c1, c0
         ee.wr_byte(@RGBLeds, RGBLeds)  
       else
         RGBLeds := leds.set_rgb0(c1)
-        ee.wr_byte(@RGBLeds, RGBLeds)  
+        ee.wr_byte(@RGBLeds, RGBLeds)
+      term.tx(term#CR)     
+      term.tx(term#CLRDN)      
     else
       show_help
     return
@@ -1613,7 +1625,9 @@ pub get_rgb | tidx, n, c1, c0
   c0 := token_to_color(2)
   if ((c1 => 0) and (c0 => 0))
     RGBLeds := leds.set_rgbx(c1, c0)
-    ee.wr_byte(@RGBLeds, RGBLeds)   
+    ee.wr_byte(@RGBLeds, RGBLeds)
+    term.tx(term#CR)     
+    term.tx(term#CLRDN)     
   else
     show_help
 

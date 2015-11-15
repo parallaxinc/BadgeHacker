@@ -1,0 +1,12 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/icons/badgehacker">
+    <file>led-green.png</file>
+    <file>led-off.png</file>
+    <file>refresh.png</file>
+    <file>refresh_sm.png</file>
+    <file>reset.png</file>
+    <file>reset_sm.png</file>
+    <file>send.png</file>
+    <file>send_sm.png</file>
+</qresource>
+</RCC>

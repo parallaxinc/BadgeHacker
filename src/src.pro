@@ -28,5 +28,5 @@ FORMS += \
     badgehacker.ui \
 
 RESOURCES += \
-    ../icons/badgehacker/badgehacker.qrc \
+    ../icons/icons.qrc \
     ../spin/spin.qrc \
