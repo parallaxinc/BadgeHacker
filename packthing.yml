@@ -27,7 +27,7 @@ repos:
     badgehacker:
         url: https://github.com/parallaxinc/BadgeHacker.git
         builder: qmake
-        tag: 0.5.0
+        tag: 0.5.1
         files:
             badgehacker:
                 name: BadgeHacker
