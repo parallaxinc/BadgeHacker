@@ -27,7 +27,6 @@ private:
     QTimer updateTimer;
     bool _ready;
     QTimer readyTimer;
-    QProgressDialog progress;
     int read_timeout;
     bool ack;
     QString ledpattern;
@@ -39,7 +38,6 @@ public:
     ~BadgeHacker();
 
 private slots:
-    void ready();
     void open();
     void closed();
     void handleEnable(bool checked);
@@ -49,15 +47,16 @@ private slots:
     void setEnabled(bool enabled);
 
     void configure();
-    bool program();
     void refresh();
-    void reset();
-    void update();
+    void update(QProgressDialog * progress);
+    bool program(QProgressDialog * progress);
     void clear();
     void saveContacts();
 
     void wait_for_write();
     void wait_for_ready();
+    void ready();
+    void start_ready(int milliseconds = 5000);
 
     void read_line();
     bool read_data(const QString & cmd = QString(), int timeout = 1000);
@@ -93,8 +92,10 @@ private slots:
     void write_rightrgb();
 
     bool blank();
-    bool ping();
-    bool notFound(const QString & title, const QString & text);
+    bool ping(QProgressDialog * progress);
+    bool notFound(const QString & title,
+            const QString & text,
+            QProgressDialog * progress);
 
     void nsmsg();
     void smsg();
