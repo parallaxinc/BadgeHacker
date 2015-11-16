@@ -94,6 +94,7 @@ private slots:
 
     bool blank();
     bool ping();
+    bool notFound(const QString & title, const QString & text);
 
     void nsmsg();
     void smsg();

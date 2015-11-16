@@ -49,8 +49,6 @@ BadgeHacker::BadgeHacker(PropellerManager * manager,
 
     connect(ui.port, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(portChanged()));
     connect(ui.configure, SIGNAL(clicked()), this, SLOT(configure()));
-//    connect(ui.program, SIGNAL(clicked()), this, SLOT(program()));
-//    connect(ui.reset, SIGNAL(clicked()), this, SLOT(reset()));
     connect(ui.saveContacts, SIGNAL(clicked()), this, SLOT(saveContacts()));
 
     connect(ui.refresh, SIGNAL(clicked()), this, SLOT(refresh()));
@@ -58,6 +56,8 @@ BadgeHacker::BadgeHacker(PropellerManager * manager,
 
     _ready = false;
     session->reset();
+    readyTimer.setSingleShot(true);
+
     readyTimer.start(5000);
     connect(&readyTimer, SIGNAL(timeout()), this, SLOT(ready()));
 }
@@ -65,6 +65,7 @@ BadgeHacker::BadgeHacker(PropellerManager * manager,
 BadgeHacker::~BadgeHacker()
 {
     closed();
+
     delete session;
 }
 
@@ -102,7 +103,6 @@ void BadgeHacker::refresh()
     setEnabled(false);
 
     progress.setCancelButton(0);
-    progress.setWindowTitle(tr("Loading..."));
     progress.setLabelText(tr("Waiting for badge..."));
     progress.setValue(0);
     progress.show();
@@ -129,8 +129,6 @@ void BadgeHacker::handleEnable(bool checked)
 
 void BadgeHacker::open()
 {
-    setEnabled(false);
-
     portChanged();
     session->unpause();
     ui.activeLight->setPixmap(QPixmap(":/icons/badgehacker/led-green.png"));
@@ -350,6 +348,30 @@ void BadgeHacker::rgb()
     ui.rightRgb->setEnabled(true);
 }
 
+bool BadgeHacker::notFound(const QString & title, const QString & text)
+{
+    QMessageBox box(QMessageBox::Warning, title, text);
+    box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    
+    int ret = box.exec();
+    if (ret == QMessageBox::Yes)
+    {
+        if (!program())
+        {
+            QMessageBox::critical(this,
+                    tr("Badge Not Found!"),
+                    tr("There doesn't appear to be a badge attached. "
+                       "Please make sure that the power is on!"));
+
+            return false;
+        }
+
+        return blank();
+    }
+    else
+        return false;
+}
+
 bool BadgeHacker::ping()
 {
     if (!session->isOpen())
@@ -358,13 +380,9 @@ bool BadgeHacker::ping()
     if (!_ready)
     {
         if (readyTimer.isActive())
-        {
             wait_for_ready();
-        }
         else
-        {
             blank();
-        }
     }
 
     read_data("ping");
@@ -373,26 +391,27 @@ bool BadgeHacker::ping()
     QString expected = "Parallax eBadge 14 NOV 2015";
 
     if ( rawreply.isEmpty() 
-            || replystrings.size() < 1
-            || version != expected )
+            || replystrings.size() < 1 )
     {
-        QMessageBox box(QMessageBox::Warning,
+        return notFound(
+                tr("No Firmware Detected"),
+                tr("BadgeHacker detected no firmware on the badge. "
+                   "Would you like to install new firmware?\n\n"
+                   "NOTE: This will overwrite all contacts!")
+                );
+    }
+
+    if ( version != expected )
+    {
+        return notFound(
                 tr("Install New Firmware?"),
                 tr("Unexpected badge firmware detected:\n\n"
                    "Found: %1\n"
                    "Expected: %2\n\n"
                    "Would you like to install new firmware?\n\n"
                    "NOTE: This will overwrite all contacts!")
-                        .arg(version).arg(expected));
-        box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-
-        int ret = box.exec();
-        if (ret == QMessageBox::Yes)
-        {
-            program();
-            if (!blank())
-                return false;
-        }
+                        .arg(version).arg(expected)
+                );
     }
 
     return true;
@@ -586,11 +605,9 @@ void BadgeHacker::setEnabled(bool enabled)
     ui.led6->setEnabled(enabled);
 
     ui.configure->setEnabled(enabled);
-//    ui.program->setEnabled(enabled);
 
     ui.refresh->setEnabled(enabled);
     ui.port->setEnabled(enabled);
-//    ui.reset->setEnabled(enabled);
 
     if (enabled)
     {
@@ -670,6 +687,7 @@ void BadgeHacker::update()
 void BadgeHacker::clear()
 {
     setEnabled(false);
+
     ui.nsmsgLine1->clear();
     ui.nsmsgLine2->clear();
     ui.smsgLine1->clear();
@@ -693,8 +711,20 @@ bool BadgeHacker::program()
     QFile file(":/spin/jm_hackable_ebadge.binary");
     file.open(QIODevice::ReadOnly);
 
+    progress.setLabelText(tr("Writing badge firmware..."));
+    progress.setValue(0);
+
     PropellerImage image = PropellerImage(file.readAll());
-    return loader.upload(image, true);
+    if (!loader.upload(image, true))
+        return false;
+
+    progress.setLabelText(tr("Wiping contact database..."));
+    progress.setValue(0);
+
+    readyTimer.start(15000);
+    wait_for_ready();
+
+    return true;
 }
 
 void BadgeHacker::saveContacts()
