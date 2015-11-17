@@ -2,5 +2,5 @@
 
 A configurator tool for the Parallax Hackable Badge
 
-![preview](screenshots/badgehacker2.png)
+![preview](screenshots/badgehacker3.png)
 
