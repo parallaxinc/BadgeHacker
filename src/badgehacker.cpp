@@ -355,6 +355,7 @@ bool BadgeHacker::notFound(const QString & title,
 
         if (!program(progress))
         {
+            progress->hide();
             QMessageBox::critical(this,
                     tr("Badge Not Found!"),
                     tr("There doesn't appear to be a badge attached. "

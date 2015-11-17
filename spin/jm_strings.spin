@@ -408,7 +408,7 @@ pub index(p_str, p_list, n) | idx
   return -1                                                      ' no match in list
 
 
-pub pntr(idx, p_list)
+pub str_pntr(idx, p_list)
 
 '' Returns to pointer to idx'th string in list (at p_list)
 '' -- string may be variable length

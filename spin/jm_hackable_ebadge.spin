@@ -1,17 +1,19 @@
 '' =================================================================================================
 ''
-''   File....... jm_hackable_ebadge__2015-11-14.spin
+''   File....... jm_hackable_ebadge__2015-11-17a.spin
 ''   Purpose.... Demo code for Parallax Hackable badge
 ''   Author..... Jon "JonnyMac" McPhalen
 ''               Copyright (C) 2015 Jon McPhalen
 ''               -- see below for terms of use
 ''   E-mail..... jon@jonmcphalen.com
 ''   Started....
-''   Updated.... 14 NOV 2015
+''   Updated.... 17 NOV 2015
 ''
 '' =================================================================================================
 
 {
+  17 NOV 2015 -- Modified contact transmission for improved reliability
+
   12 NOV 2015 -- Added LED settings persistence between power cycles
 
   08 NOV 2015 -- Updates to assist BadgeHacker
@@ -94,7 +96,7 @@
         SMSG 1 "Jon McPhalen"
         SMSG 2 "King of Propellers"
 
-      Important Note: Strings that contain whitespace of special characters must be enclosed in
+      Important Note: Strings that contain whitespace or special characters must be enclosed in
       quotes. When in doubt, use quotes.
 
 
@@ -140,7 +142,7 @@
 
 dat
 
-  DATE_CODE     byte    "Parallax eBadge 14 NOV 2015", 0         ' response to PING command
+  DATE_CODE     byte    "Parallax eBadge 17 NOV 2015", 0         ' response to PING command
 
 
 con { timing }
@@ -382,10 +384,10 @@ dat { name & contact information }
   RGBLeds       byte    0
   
 
-pub main | c
+pub main | c, addr, p_str
 
   setup                                                          ' setup io and badge objects
-
+  
   check_db                                                       ' check for database reset  
 
   show_logo
@@ -545,7 +547,7 @@ pub check_scroll | len
       scrolldirty := true
 
 
-pub check_receive | c, idx, check, checksum, found               ' *** DISABLED *** 
+pub check_receive | c, idx, check, checksum, found 
 
 '' Looks for input from IR uart
 '' -- contact string is framed with STX and ETX bytes
@@ -553,42 +555,41 @@ pub check_receive | c, idx, check, checksum, found               ' *** DISABLED 
   if (numcontacts == MAX_CONTACTS)                               ' if no room in db
     ir.rxflush
     return                                                       '  abort
- 
+    
   c := ir.rxcheck                                                ' any ir traffic?
   if (c <> STX)                                                  ' if not STX, abort
     return
 
+  bytefill(@buf1, 0, CONTACT_LEN)                                ' clear rx buffer
+    
   dstate := MSG_RX_NOW
   update_display(posx)  
   leds.set_rgbx(leds#GREEN, leds#GREEN)                          ' show rx'ing
 
   ' rx bytes into buffer until t/o or ETX
 
-  bytefill(@buf1, 0, CONTACT_LEN)                                ' clear rx buffer
   idx := 0                                                       ' set index to beginning
   check := 0                                                     ' clear running checksum
   
   repeat
-    c := ir.rxtime(10)                                           ' use time-out in case packet breaks
+    c := ir.rxtime(25)                                           ' use time-out in case packet breaks
     if (c < 0)                                                   ' time out
       rx_status(RX_ERROR)                                        ' show error
       return
     elseif (c == ETX)                                            ' end of contact transmission
       quit
     else
-      buf1[idx] := c                                             ' add byte to buffer
+      buf1[idx++] := c                                           ' add byte to buffer
       check += c                                                 ' update working checksum
-      if (++idx == CONTACT_LEN-1)                                ' max length reached?
-        quit                                                     '  yes, done
 
   check := $FF - (check & $FF)                                   ' clean-up working checksum
     
-  checksum := ir.rxtime(10)                                      ' get checksum from sender
+  checksum := ir.rxtime(25)                                      ' get checksum from sender
   if ((checksum < 0) or (checksum <> check))                     ' validate (no timeout or mismatch)
     rx_status(RX_ERROR) 
     return
 
-  c := ir.rxtime(10)                                             ' get EOT
+  c := ir.rxtime(25)                                             ' get EOT
   if (c <> EOT)                                                  ' validate       
     rx_status(RX_ERROR) 
     return                                                   
@@ -645,9 +646,9 @@ pub rx_status(status) | color
   flash_rgbs(color) 
        
 
-pub check_transmit | idx, c, checksum                            ' *** DISABLED ***
+pub check_transmit | idx, c, checksum
 
-'' Send MyInfo strings between STX and EOT framing bytes
+'' Send MyInfo strings between STX and ETX framing bytes
 '' -- keep running checksum
 '' -- tx checkum, then EOT to end transmission
 
@@ -664,51 +665,55 @@ pub check_transmit | idx, c, checksum                            ' *** DISABLED 
 
   leds.set_rgbx(leds#GREEN, leds#GREEN)
 
-  ' build buffer from info strings
-  ' -- replaces string terminators with CR
+  ir.tx(STX)                                                     ' start of message
 
-  bytefill(@buf1, 0, CONTACT_LEN)                                ' clear buffer
+  ir.str(@MyInfo0)                                               ' send contact
+  checksum := get_sum(@MyInfo0)                                  '  send a string
+  ir.tx(13)                                                      '  add CR to end
+  checksum += 13 
+  ir.txflush                                                     ' let string finish
 
-  bytemove(@buf1, @MyInfo0, strsize(@MyInfo0))                   ' copy to buffer
-  buf1[strsize(@buf1)] := 13                                     ' end line with CR
+  ir.str(@MyInfo1)               
+  checksum += get_sum(@MyInfo1)  
+  ir.tx(13)                      
+  checksum += 13                 
+  ir.txflush
+
+  ir.str(@MyInfo2)               
+  checksum += get_sum(@MyInfo2)  
+  ir.tx(13)                      
+  checksum += 13                 
+  ir.txflush
+
+  ir.str(@MyInfo3)               
+  checksum += get_sum(@MyInfo3)  
+  ir.txflush                   
   
-  bytemove(@buf1[strsize(@buf1)], @MyInfo1, strsize(@MyInfo1))  
-  buf1[strsize(@buf1)] := 13                
-
-  bytemove(@buf1[strsize(@buf1)], @MyInfo2, strsize(@MyInfo2))  
-  buf1[strsize(@buf1)] := 13
-
-  bytemove(@buf1[strsize(@buf1)], @MyInfo3, strsize(@MyInfo3))
-  ' CR not required after last line  
-
-  ' send contact info between framing bytes
-
-  ir.tx(STX)                                                     ' start of text
-  idx := 0                                                       ' 
-  checksum := 0                                                  ' clear checksum
+  ir.tx(ETX)                                                     ' end of info text
   
-  repeat
-    c := buf1[idx]                                               ' get a character
-    if (c == 0)                                                  ' if end of info
-      quit                                                       '  exit
-    else
-      ir.tx(c)                                                   ' tx the character
-      checksum += c                                              ' add to checksum
-      if (++idx == CONTACT_LEN)                                  ' limit transmission length
-        quit
-  
-  ir.tx(ETX)                                                     ' end of text
   checksum := $FF - (checksum & $FF)                             ' create checksum
   ir.tx(checksum)                                                ' send it
-  ir.tx(EOT)                                                     ' end of transmission                                                    
-  ir.txflush                                                     ' let it finish
+
+  ir.tx(EOT)                                                     ' end of transmission                                                   
 
   dstate := MSG_TX_DONE                                          ' show sending
   update_display(1000)
   flash_rgbs(leds#GREEN)    
 
   time.set_secs(-TX_HOLDOFF)                                     ' disable tx
-    
+
+
+pri get_sum(p_str) | sum
+
+'' Provide sum of ASCII values in string
+
+  sum := 0
+
+  repeat strsize(p_str)
+    sum += byte[p_str++]
+
+  return sum
+
 
 pub flash_rgbs(color)
 
@@ -783,7 +788,7 @@ pub read_record(idx, p_dest) | addr
 '' Read record idx to destination
 '' -- p_dest is pointer to destination
 
-  bytefill(p_dest, 0, CONTACT_LEN)                               ' clear destination
+  bytefill(p_dest, 0, CONTACT_LEN )                               ' clear destination
 
   if ((idx < 0) or (idx > LAST_CONTACT))                         ' validate record idex
     return
@@ -907,7 +912,7 @@ pub value_nn_n(value, p_str) | zflag
 
   byte[p_str++] := "."                                           ' decimal separator  
 
-  byte[p_str] := "0" + (value // 10)                             ' 0.1s digit
+  byte[p_str]   := "0" + (value // 10)                           ' 0.1s digit
 
 
 pub update_acc_leds(x, y)
@@ -954,7 +959,6 @@ pub update_acc_leds(x, y)
                                         
     else                                
       leds.set_blue(1 << BLUE_4 | 1 << BLUE_1)  
-
 
 
 pub read_battery | level 
@@ -1068,8 +1072,8 @@ dat { valid command tokens }
                 byte    "0123456789"
                 byte    "ABCDEFGHIJKLMNOPQRSTUVWXYZ" 
                 byte    "abcdefghijklmnopqrstuvwxyz", 0
-                 
-                 
+
+                
   TOKEN_LIST    byte    "NSMSG", 0    
                 byte    "SMSG", 0     
                 byte    "SCROLL", 0   
@@ -1102,7 +1106,7 @@ dat { valid command tokens }
                 byte    "HELP", 0
                 byte    "PING", 0
 
-
+                
   HELP_MSG      byte    "Commands:", 13
                 byte    "  NSMSG line1 line2               -- non-scrolling, 8 chars max", 13
                 byte    "  NSMSG [1|2] line                -- non-scrolling, 8 chars max", 13
@@ -1117,7 +1121,6 @@ dat { valid command tokens }
                 byte    "  RGB [COLOR|LEFT|RIGHT|] COLOR   -- set RGB LEDs", 13
                 byte    "  ACCEL [ALL|X|Y|Z]               -- read accelerometer", 13 
                 byte    "  HELP                            -- display this screen", 13
-                byte    13
                 byte    0
 
 
