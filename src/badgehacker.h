@@ -20,6 +20,7 @@ private:
     PropellerManager * manager;
     PropellerSession * session;
 
+    QString _expected;
     QString rawreply;
     QString reply;
     QStringList replystrings;
@@ -32,6 +33,8 @@ private:
     QString ledpattern;
     const QString rgbPatternToString(const QString & string);
     QStringList colornames;
+    QList<QStringList> contactlist;
+    QStringList allcontacts;
 
 public:
     explicit BadgeHacker(PropellerManager * manager, QWidget *parent = 0);
@@ -52,6 +55,7 @@ private slots:
     bool program(QProgressDialog * progress);
     void clear();
     void saveContacts();
+    void showContact(int index);
 
     void wait_for_write();
     void wait_for_ready();
@@ -104,6 +108,8 @@ private slots:
     void contacts();
     void led();
     void rgb();
+
+    const QString firmware();
 
 signals:
     void finished();

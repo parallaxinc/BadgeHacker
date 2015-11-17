@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>605</width>
-    <height>667</height>
+    <width>589</width>
+    <height>735</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -154,7 +154,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
@@ -168,22 +168,34 @@
          <property name="title">
           <string>Display Text</string>
          </property>
-         <layout class="QFormLayout" name="formLayout_2">
-          <item row="0" column="1">
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
            <widget class="QCheckBox" name="scroll">
             <property name="text">
              <string>Scroll text?</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
+          <item>
            <widget class="QLabel" name="label">
             <property name="text">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Non-Scrolling Text&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
+          <item>
+           <widget class="QLabel" name="label_3">
+            <property name="font">
+             <font>
+              <pointsize>8</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>(max 8 chars line)</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QLineEdit" name="nsmsgLine1">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -208,7 +220,7 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
+          <item>
            <widget class="QLineEdit" name="nsmsgLine2">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -227,26 +239,26 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="1">
-           <widget class="QLabel" name="label_3">
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>(max 8 chars)</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0">
+          <item>
            <widget class="QLabel" name="label_2">
             <property name="text">
              <string>Scrolling Text</string>
             </property>
            </widget>
           </item>
-          <item row="4" column="1">
+          <item>
+           <widget class="QLabel" name="label_4">
+            <property name="font">
+             <font>
+              <pointsize>8</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>(max 31 chars per line)</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QLineEdit" name="smsgLine1">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -265,7 +277,7 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
+          <item>
            <widget class="QLineEdit" name="smsgLine2">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -284,18 +296,6 @@
             </property>
            </widget>
           </item>
-          <item row="6" column="1">
-           <widget class="QLabel" name="label_4">
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>(max 31 chars)</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
        </item>
@@ -311,7 +311,7 @@
           <string>Shareable Contact Info</string>
          </property>
          <layout class="QFormLayout" name="formLayout">
-          <item row="0" column="0" colspan="2">
+          <item row="1" column="0" colspan="2">
            <widget class="QLineEdit" name="infoLine1">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -330,7 +330,7 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0" colspan="2">
+          <item row="2" column="0" colspan="2">
            <widget class="QLineEdit" name="infoLine2">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -349,7 +349,7 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0" colspan="2">
+          <item row="3" column="0" colspan="2">
            <widget class="QLineEdit" name="infoLine3">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -368,7 +368,7 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="0" colspan="2">
+          <item row="4" column="0" colspan="2">
            <widget class="QLineEdit" name="infoLine4">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -384,6 +384,18 @@
             </property>
             <property name="placeholderText">
              <string>line 4</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_7">
+            <property name="font">
+             <font>
+              <pointsize>8</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>(max 31 chars per line)</string>
             </property>
            </widget>
           </item>
@@ -542,6 +554,18 @@
         </item>
         <item>
          <widget class="QPlainTextEdit" name="contacts">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>100</height>
+           </size>
+          </property>
           <property name="palette">
            <palette>
             <active>
@@ -557,45 +581,45 @@
              <colorrole role="Button">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>51</red>
-                <green>51</green>
-                <blue>51</blue>
+                <red>28</red>
+                <green>28</green>
+                <blue>28</blue>
                </color>
               </brush>
              </colorrole>
              <colorrole role="Light">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>76</red>
-                <green>76</green>
-                <blue>76</blue>
+                <red>42</red>
+                <green>42</green>
+                <blue>42</blue>
                </color>
               </brush>
              </colorrole>
              <colorrole role="Midlight">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>63</red>
-                <green>63</green>
-                <blue>63</blue>
+                <red>35</red>
+                <green>35</green>
+                <blue>35</blue>
                </color>
               </brush>
              </colorrole>
              <colorrole role="Dark">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>25</red>
-                <green>25</green>
-                <blue>25</blue>
+                <red>14</red>
+                <green>14</green>
+                <blue>14</blue>
                </color>
               </brush>
              </colorrole>
              <colorrole role="Mid">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>34</red>
-                <green>34</green>
-                <blue>34</blue>
+                <red>18</red>
+                <green>18</green>
+                <blue>18</blue>
                </color>
               </brush>
              </colorrole>
@@ -638,9 +662,9 @@
              <colorrole role="Window">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>51</red>
-                <green>51</green>
-                <blue>51</blue>
+                <red>28</red>
+                <green>28</green>
+                <blue>28</blue>
                </color>
               </brush>
              </colorrole>
@@ -656,9 +680,9 @@
              <colorrole role="AlternateBase">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>25</red>
-                <green>25</green>
-                <blue>25</blue>
+                <red>14</red>
+                <green>14</green>
+                <blue>14</blue>
                </color>
               </brush>
              </colorrole>
@@ -694,45 +718,45 @@
              <colorrole role="Button">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>51</red>
-                <green>51</green>
-                <blue>51</blue>
+                <red>28</red>
+                <green>28</green>
+                <blue>28</blue>
                </color>
               </brush>
              </colorrole>
              <colorrole role="Light">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>76</red>
-                <green>76</green>
-                <blue>76</blue>
+                <red>42</red>
+                <green>42</green>
+                <blue>42</blue>
                </color>
               </brush>
              </colorrole>
              <colorrole role="Midlight">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>63</red>
-                <green>63</green>
-                <blue>63</blue>
+                <red>35</red>
+                <green>35</green>
+                <blue>35</blue>
                </color>
               </brush>
              </colorrole>
              <colorrole role="Dark">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>25</red>
-                <green>25</green>
-                <blue>25</blue>
+                <red>14</red>
+                <green>14</green>
+                <blue>14</blue>
                </color>
               </brush>
              </colorrole>
              <colorrole role="Mid">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>34</red>
-                <green>34</green>
-                <blue>34</blue>
+                <red>18</red>
+                <green>18</green>
+                <blue>18</blue>
                </color>
               </brush>
              </colorrole>
@@ -775,9 +799,9 @@
              <colorrole role="Window">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>51</red>
-                <green>51</green>
-                <blue>51</blue>
+                <red>28</red>
+                <green>28</green>
+                <blue>28</blue>
                </color>
               </brush>
              </colorrole>
@@ -793,9 +817,9 @@
              <colorrole role="AlternateBase">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>25</red>
-                <green>25</green>
-                <blue>25</blue>
+                <red>14</red>
+                <green>14</green>
+                <blue>14</blue>
                </color>
               </brush>
              </colorrole>
@@ -822,63 +846,63 @@
              <colorrole role="WindowText">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>25</red>
-                <green>25</green>
-                <blue>25</blue>
+                <red>14</red>
+                <green>14</green>
+                <blue>14</blue>
                </color>
               </brush>
              </colorrole>
              <colorrole role="Button">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>51</red>
-                <green>51</green>
-                <blue>51</blue>
+                <red>28</red>
+                <green>28</green>
+                <blue>28</blue>
                </color>
               </brush>
              </colorrole>
              <colorrole role="Light">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>76</red>
-                <green>76</green>
-                <blue>76</blue>
+                <red>42</red>
+                <green>42</green>
+                <blue>42</blue>
                </color>
               </brush>
              </colorrole>
              <colorrole role="Midlight">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>63</red>
-                <green>63</green>
-                <blue>63</blue>
+                <red>35</red>
+                <green>35</green>
+                <blue>35</blue>
                </color>
               </brush>
              </colorrole>
              <colorrole role="Dark">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>25</red>
-                <green>25</green>
-                <blue>25</blue>
+                <red>14</red>
+                <green>14</green>
+                <blue>14</blue>
                </color>
               </brush>
              </colorrole>
              <colorrole role="Mid">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>34</red>
-                <green>34</green>
-                <blue>34</blue>
+                <red>18</red>
+                <green>18</green>
+                <blue>18</blue>
                </color>
               </brush>
              </colorrole>
              <colorrole role="Text">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>25</red>
-                <green>25</green>
-                <blue>25</blue>
+                <red>14</red>
+                <green>14</green>
+                <blue>14</blue>
                </color>
               </brush>
              </colorrole>
@@ -894,27 +918,27 @@
              <colorrole role="ButtonText">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>25</red>
-                <green>25</green>
-                <blue>25</blue>
+                <red>14</red>
+                <green>14</green>
+                <blue>14</blue>
                </color>
               </brush>
              </colorrole>
              <colorrole role="Base">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>51</red>
-                <green>51</green>
-                <blue>51</blue>
+                <red>28</red>
+                <green>28</green>
+                <blue>28</blue>
                </color>
               </brush>
              </colorrole>
              <colorrole role="Window">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>51</red>
-                <green>51</green>
-                <blue>51</blue>
+                <red>28</red>
+                <green>28</green>
+                <blue>28</blue>
                </color>
               </brush>
              </colorrole>
@@ -930,9 +954,9 @@
              <colorrole role="AlternateBase">
               <brush brushstyle="SolidPattern">
                <color alpha="255">
-                <red>51</red>
-                <green>51</green>
-                <blue>51</blue>
+                <red>28</red>
+                <green>28</green>
+                <blue>28</blue>
                </color>
               </brush>
              </colorrole>
@@ -958,30 +982,60 @@
            </palette>
           </property>
           <property name="verticalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOff</enum>
+          </property>
+          <property name="horizontalScrollBarPolicy">
            <enum>Qt::ScrollBarAsNeeded</enum>
           </property>
           <property name="readOnly">
            <bool>true</bool>
           </property>
           <property name="plainText">
-           <string>Mr. Jon Fake
-123 Fake St.
-Internet Place, CA 11223
-@fakeperson
-
-Sam Guy
-456 Otter Dr.
-Hamptom, MI 91194
-@realsam22
-
-Frad Green</string>
+           <string>Jon Doe
+Acme Corporation
+123 Fake Street
+Fake County, CA 01234</string>
           </property>
+          <property name="maximumBlockCount">
+           <number>4</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QListWidget" name="contactList">
+          <property name="verticalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOn</enum>
+          </property>
+          <property name="horizontalScrollBarPolicy">
+           <enum>Qt::ScrollBarAsNeeded</enum>
+          </property>
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+          <property name="horizontalScrollMode">
+           <enum>QAbstractItemView::ScrollPerItem</enum>
+          </property>
+          <item>
+           <property name="text">
+            <string>Jon Doe</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Fred Benton</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Captain Bob</string>
+           </property>
+          </item>
          </widget>
         </item>
         <item>
          <widget class="QPushButton" name="saveContacts">
           <property name="text">
-           <string>Save Contacts</string>
+           <string>Save All Contacts</string>
           </property>
           <property name="flat">
            <bool>false</bool>
@@ -996,11 +1050,6 @@ Frad Green</string>
   </layout>
  </widget>
  <tabstops>
-  <tabstop>scroll</tabstop>
-  <tabstop>nsmsgLine1</tabstop>
-  <tabstop>nsmsgLine2</tabstop>
-  <tabstop>smsgLine1</tabstop>
-  <tabstop>smsgLine2</tabstop>
   <tabstop>infoLine1</tabstop>
   <tabstop>infoLine2</tabstop>
   <tabstop>infoLine3</tabstop>
@@ -1014,7 +1063,6 @@ Frad Green</string>
   <tabstop>led5</tabstop>
   <tabstop>led4</tabstop>
   <tabstop>contacts</tabstop>
-  <tabstop>saveContacts</tabstop>
  </tabstops>
  <resources>
   <include location="../icons/icons.qrc"/>

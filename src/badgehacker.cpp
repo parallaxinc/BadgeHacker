@@ -8,6 +8,7 @@
 #include <QPixmap>
 #include <QTextStream>
 #include <QMessageBox>
+#include <QRegularExpression>
 
 #include <PropellerLoader>
 #include <PropellerImage>
@@ -19,6 +20,8 @@ BadgeHacker::BadgeHacker(PropellerManager * manager,
 : QWidget(parent)
 {
     ui.setupUi(this);
+
+    _expected = firmware();
 
     read_timeout = 50;
     ledpattern = QString(6,'0');
@@ -42,6 +45,9 @@ BadgeHacker::BadgeHacker(PropellerManager * manager,
 
     updatePorts();
     ui.contacts->clear();
+    ui.contactList->clear();
+
+    connect(ui.contactList, SIGNAL(currentRowChanged(int)), this, SLOT(showContact(int)));
 
     connect(manager, SIGNAL(portListChanged()), this, SLOT(updatePorts()));
     connect(session, SIGNAL(sendError(const QString &)), this, SLOT(handleError()));
@@ -109,6 +115,7 @@ void BadgeHacker::refresh()
     
     QProgressDialog * progress = new QProgressDialog(this, Qt::WindowStaysOnTopHint);
     progress->setCancelButton(0);
+    progress->setWindowTitle(tr("Loading..."));
     progress->setLabelText(tr("Waiting for badge..."));
     progress->setValue(0);
     progress->show();
@@ -254,7 +261,6 @@ void BadgeHacker::scroll()
     if (replystrings.size() < 1) return;
 
     QString yesno = replystrings[0].toLower();
-//    qDebug() << "yes";
 
     if (yesno == "yes")
         ui.scroll->setChecked(true);
@@ -363,6 +369,23 @@ bool BadgeHacker::notFound(const QString & title,
         return false;
 }
 
+const QString BadgeHacker::firmware()
+{
+    QFile file(":/spin/jm_hackable_ebadge.spin");
+    file.open(QFile::ReadOnly);
+    QString text = file.readAll();
+    file.close();
+
+    QRegularExpression re("^\\s+DATE_CODE\\s+byte\\s+\"(.*?)\"\\s*,\\s*0\\s+.*$");
+    re.setPatternOptions(QRegularExpression::MultilineOption);
+    QRegularExpressionMatch match = re.match(text);
+
+    if (match.hasMatch())
+        return match.captured(1);
+    else
+        return QString();
+}
+
 bool BadgeHacker::ping(QProgressDialog * progress)
 {
     if (!session->isOpen())
@@ -380,11 +403,12 @@ bool BadgeHacker::ping(QProgressDialog * progress)
     progress->setLabelText(tr("Connecting to badge..."));
  
     if (!read_data("ping"))
+    {
         read_data(QString(), 5000);
         read_data("ping");
+    }
 
     QString version = replystrings[0];
-    QString expected = "Parallax eBadge 16 NOV 2015";
 
     if ( rawreply.isEmpty() 
             || replystrings.size() < 1 )
@@ -397,7 +421,7 @@ bool BadgeHacker::ping(QProgressDialog * progress)
                 progress);
     }
 
-    if ( version != expected )
+    if ( version != _expected )
     {
         return notFound(
                 tr("Install New Firmware?"),
@@ -406,7 +430,7 @@ bool BadgeHacker::ping(QProgressDialog * progress)
                    "Expected: %2\n\n"
                    "Would you like to install new firmware?\n\n"
                    "NOTE: This will overwrite all contacts!")
-                        .arg(version).arg(expected),
+                        .arg(version).arg(_expected),
                 progress);
     }
 
@@ -415,22 +439,74 @@ bool BadgeHacker::ping(QProgressDialog * progress)
 
 void BadgeHacker::contacts()
 {
+    ui.contacts->clear();
+
+    // QListWidget::clear() is buggy
+    disconnect(ui.contactList, SIGNAL(currentRowChanged(int)), this, SLOT(showContact(int)));
+    ui.contactList->clearSelection();
+    ui.contactList->clearFocus();
+    ui.contactList->clear();
+    connect(ui.contactList, SIGNAL(currentRowChanged(int)), this, SLOT(showContact(int)));
+
     read_data("contacts");
 
-    QStringList contactlist = replystrings;
+    // validate contacts
+
+    if (replystrings.size() < 3)
+    {
+        ui.contacts_count->setText(tr("0 Contacts"));
+        return;
+    }
     
-    if (contactlist.size() < 4) return;
+    replystrings.removeAt(0);
+    replystrings.removeAt(0);
+    replystrings.removeLast();
 
-    QStringList contactcount = contactlist[0].split(" ");
-    if (contactcount.isEmpty()) return;
+    if (replystrings.size() < 5) return;
+    if (replystrings.size() % 5 != 0) return;
 
-    ui.contacts_count->setText(tr("%1 Contacts").arg(contactcount[0]));
+    // process contact list
 
-    contactlist.removeAt(0);
-    contactlist.removeAt(0);
+    int total_contacts = replystrings.size() / 5;
+    ui.contacts_count->setText(tr("%1 Contacts").arg(total_contacts));
 
+    QString previous;
+    contactlist.clear();
+
+    for (int i = 0; i < total_contacts; i++)
+    {
+        QStringList contact;
+
+        for (int j = 0;  j < 5; j++)
+        {
+            if (!replystrings[i*5 + j].isEmpty())
+                contact.append(replystrings[i*5 + j]);
+        }
+
+        if (!contact.isEmpty())
+        {
+            if (QString::localeAwareCompare(contact[0], previous) < 0)
+                contactlist.prepend(contact);
+            else
+                contactlist.append(contact);
+
+            previous = contact[0];
+        }
+    }
+
+    foreach (QStringList s, contactlist)
+        ui.contactList->addItem(s[0]);
+
+    ui.contactList->setCurrentRow(0);
+}
+
+void BadgeHacker::showContact(int index)
+{
     ui.contacts->clear();
-    foreach (QString s, contactlist)
+
+    if (index >= contactlist.size()) return;
+
+    foreach (QString s, contactlist[index])
     {
         ui.contacts->appendPlainText(s);
     }
@@ -698,6 +774,13 @@ void BadgeHacker::clear()
     ui.scroll->setChecked(false);
 
     ui.contacts->clear();
+
+    // QListWidget::clear() is buggy
+    disconnect(ui.contactList, SIGNAL(currentRowChanged(int)), this, SLOT(showContact(int)));
+    ui.contactList->clearSelection();
+    ui.contactList->clearFocus();
+    ui.contactList->clear();
+    connect(ui.contactList, SIGNAL(currentRowChanged(int)), this, SLOT(showContact(int)));
 }
 
 bool BadgeHacker::program(QProgressDialog * progress)
@@ -752,8 +835,35 @@ void BadgeHacker::saveContacts()
 
     QTextStream out(&file);
     out.setCodec("UTF-8");
-    out << ui.contacts->toPlainText();
-    out.flush();
 
+    out << "Contacts for " << ui.nsmsgLine1->text().trimmed() << " "
+                           << ui.nsmsgLine2->text().trimmed() << "\n";
+    out << "-----------------------------------------------\n";
+    out << "Generated by BadgeHacker, (C) 2015 Parallax Inc\n";
+    out << "-----------------------------------------------\n\n";
+
+    out << contactlist.size() << " contacts\n\n";
+
+    QChar previous;
+    QChar next;
+
+    foreach(QStringList contact, contactlist)
+    {
+        next = contact[0][0];
+        if (next != previous)
+        {
+            out << next << "\n\n";
+            previous = next;
+        }
+
+        foreach(QString s, contact)
+        {
+            out << "    " << s << "\n";
+        }
+
+        out << "\n";
+    }
+
+    out.flush();
     file.close();
 }

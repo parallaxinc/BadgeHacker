@@ -1,5 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource prefix="/spin">
     <file>jm_hackable_ebadge.binary</file>
+    <file>jm_hackable_ebadge.spin</file>
 </qresource>
 </RCC>
