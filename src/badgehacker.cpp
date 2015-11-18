@@ -163,7 +163,7 @@ void BadgeHacker::closed()
 void BadgeHacker::portChanged()
 {
     session->setPortName(ui.port->currentText());
-    qCDebug(badgehacker) << "New port:" << session->portName();
+    qCDebug(badgehacker) << "setting port:" << qPrintable(session->portName());
 }
 
 void BadgeHacker::handleError()
@@ -370,21 +370,55 @@ bool BadgeHacker::notFound(const QString & title,
         return false;
 }
 
-const QString BadgeHacker::firmware()
+QMap<QString, QString> BadgeHacker::firmware()
 {
     QFile file(":/spin/jm_hackable_ebadge.spin");
     file.open(QFile::ReadOnly);
     QString text = file.readAll();
     file.close();
 
-    QRegularExpression re("^\\s+DATE_CODE\\s+byte\\s+\"(.*?)\"\\s*,\\s*0\\s+.*$");
-    re.setPatternOptions(QRegularExpression::MultilineOption);
+    QString exp;
+    exp += "DATE_CODE\\s+byte\\s+\"";
+    exp += "(.+?)";
+    exp += "\"\\s*,\\s*0";
+    QRegularExpression re(exp);
     QRegularExpressionMatch match = re.match(text);
 
-    if (match.hasMatch())
-        return match.captured(1);
-    else
-        return QString();
+    qCDebug(badgehacker) << "built for:" << qPrintable(match.captured(1));
+
+    return parseFirmwareString(match.captured(1));
+}
+
+QMap<QString, QString> BadgeHacker::parseFirmwareString(const QString & text)
+{
+    QString exp;
+    exp += "(\\w+) ";                               // company
+    exp += "(\\w+)";                                // name
+
+    exp += "\\s+\\(\\s*";
+
+    exp += "v(\\d+)\\.(\\d+)\\s+";                   // firmware, protocol
+    exp += "(\\d\\d\\d\\d)-(\\d\\d)-(\\d\\d)";      // year, month, day
+
+    exp += "\\s*\\)\\s*";
+
+    QRegularExpression re(exp);
+    QRegularExpressionMatch match = re.match(text);
+
+//    foreach (QString s, match.capturedTexts())
+//        qDebug() << s;
+
+    QMap<QString, QString> map;
+
+    map["company"]  = match.captured(1);
+    map["product"]  = match.captured(2);
+    map["firmware"] = match.captured(3);
+    map["protocol"] = match.captured(4);
+    map["year"]     = match.captured(5);
+    map["month"]    = match.captured(6);
+    map["day"]      = match.captured(7);
+
+    return map;
 }
 
 bool BadgeHacker::ping(QProgressDialog * progress)
@@ -409,7 +443,7 @@ bool BadgeHacker::ping(QProgressDialog * progress)
         read_data("ping");
     }
 
-    QString version = replystrings[0];
+    QMap<QString, QString> version = parseFirmwareString(replystrings[0]);
 
     if ( rawreply.isEmpty() 
             || replystrings.size() < 1 )
@@ -424,15 +458,22 @@ bool BadgeHacker::ping(QProgressDialog * progress)
 
     if ( version != _expected )
     {
-        return notFound(
+        if (!notFound(
                 tr("Install New Firmware?"),
                 tr("Unexpected badge firmware detected:\n\n"
-                   "Found: %1\n"
-                   "Expected: %2\n\n"
+                   "Found: %1.%2\n"
+                   "Expected: %3.%4\n\n"
                    "Would you like to install new firmware?\n\n"
                    "NOTE: This will overwrite all contacts!")
-                        .arg(version).arg(_expected),
-                progress);
+                        .arg(version["firmware"]).arg(version["protocol"])
+                        .arg(_expected["firmware"]).arg(_expected["protocol"]),
+                progress))
+        {
+            if (version["protocol"] != _expected["protocol"])
+                return false;
+            else
+                return true;
+        }
     }
 
     return true;

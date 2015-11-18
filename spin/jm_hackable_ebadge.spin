@@ -1,6 +1,6 @@
 '' =================================================================================================
 ''
-''   File....... jm_hackable_ebadge__2015-11-17a.spin
+''   File....... jm_hackable_ebadge__2015-11-17b.spin
 ''   Purpose.... Demo code for Parallax Hackable badge
 ''   Author..... Jon "JonnyMac" McPhalen
 ''               Copyright (C) 2015 Jon McPhalen
@@ -13,6 +13,8 @@
 
 {
   17 NOV 2015 -- Modified contact transmission for improved reliability
+              -- Changed PING response per Brett for better BadgeHacker cooperation
+              -- update object filenames for x-platform compatibility
 
   12 NOV 2015 -- Added LED settings persistence between power cycles
 
@@ -142,7 +144,7 @@
 
 dat
 
-  DATE_CODE     byte    "Parallax eBadge 17 NOV 2015", 0         ' response to PING command
+  DATE_CODE     byte    "Parallax eBadge (v100.10 2015-11-17)", 0
 
 
 con { timing }
@@ -286,7 +288,7 @@ obj
   acc    : "jm_mma7660fc"                                        '   MMA7660 accelerometer
   pads   : "jm_touchpads"                                        '   touchpad input
   parser : "jm_parser"                                           '   string parser
-  oled   : "oled_asmfast"                                        ' * OLED driver (TEMPORARY)
+  oled   : "OLED_AsmFast"                                        ' * OLED driver (TEMPORARY)
   leds   : "jm_ebadge_leds"                                      ' * charlieplexing driver for LEDs
   ir     : "jm_ir_hdserial"                                      ' * half-duplex serial via IR
   term   : "jm_fullduplexserial"                                 ' * full-duplex serial via terminal

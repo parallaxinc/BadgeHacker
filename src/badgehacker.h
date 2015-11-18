@@ -4,6 +4,7 @@
 #include <QTimer>
 #include <QLoggingCategory>
 #include <QProgressDialog>
+#include <QMap>
 
 #include <PropellerSession>
 
@@ -20,7 +21,7 @@ private:
     PropellerManager * manager;
     PropellerSession * session;
 
-    QString _expected;
+    QMap<QString, QString> _expected;
     QString rawreply;
     QString reply;
     QStringList replystrings;
@@ -31,10 +32,13 @@ private:
     int read_timeout;
     bool ack;
     QString ledpattern;
-    const QString rgbPatternToString(const QString & string);
     QStringList colornames;
     QList<QStringList> contactlist;
     QStringList allcontacts;
+
+    const QString rgbPatternToString(const QString & string);
+    QMap<QString, QString> parseFirmwareString(const QString & text);
+    QMap<QString, QString> firmware();
 
 public:
     explicit BadgeHacker(PropellerManager * manager, QWidget *parent = 0);
@@ -108,8 +112,6 @@ private slots:
     void contacts();
     void led();
     void rgb();
-
-    const QString firmware();
 
 signals:
     void finished();
