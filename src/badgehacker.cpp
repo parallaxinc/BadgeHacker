@@ -21,7 +21,7 @@ BadgeHacker::BadgeHacker(PropellerManager * manager,
 {
     ui.setupUi(this);
 
-    _expected = firmware();
+    version();
 
     read_timeout = 50;
     ledpattern = QString(6,'0');
@@ -72,6 +72,16 @@ BadgeHacker::~BadgeHacker()
     closed();
 
     delete session;
+}
+
+void BadgeHacker::version()
+{
+    _expected = firmware();
+
+    ui.version->setText(tr("BadgeHacker v%1 (firmware %2.%3)")
+            .arg(qApp->applicationVersion())
+            .arg(_expected["firmware"])
+            .arg(_expected["protocol"]));
 }
 
 void BadgeHacker::updatePorts()
@@ -226,6 +236,19 @@ bool BadgeHacker::read_data(const QString & cmd, int timeout)
 bool BadgeHacker::blank()
 {
     start_ready();
+
+    PropellerLoader loader(manager, ui.port->currentText());
+
+    bool ldr = loader.version();
+    if (!ldr)
+    {
+        qDebug() << "Failed to detect hardware";
+        return false;
+    }
+    else
+    {
+        qCDebug(badgehacker) << "hardware found";
+    }
     session->reset();
     _ready = read_data(QString(), 5000);
     readyTimer.stop();
@@ -339,6 +362,26 @@ void BadgeHacker::rgb()
     ui.rightRgb->setEnabled(true);
 }
 
+bool BadgeHacker::badgeNotFound(QProgressDialog * progress)
+{
+    progress->hide();
+    QMessageBox::critical(this,
+            tr("Badge Not Found!"),
+            tr("There doesn't appear to be a badge attached. "
+               "Please make sure that the power is on!"));
+    return false;
+}
+
+bool BadgeHacker::firmwareNotFound(QProgressDialog * progress)
+{
+    return notFound(
+            tr("No Firmware Detected"),
+            tr("BadgeHacker detected no firmware on the badge. "
+               "Would you like to install new firmware?\n\n"
+               "NOTE: This will overwrite all contacts!"),
+            progress);
+}
+
 bool BadgeHacker::notFound(const QString & title,
         const QString & text,
         QProgressDialog * progress)
@@ -355,13 +398,7 @@ bool BadgeHacker::notFound(const QString & title,
 
         if (!program(progress))
         {
-            progress->hide();
-            QMessageBox::critical(this,
-                    tr("Badge Not Found!"),
-                    tr("There doesn't appear to be a badge attached. "
-                       "Please make sure that the power is on!"));
-
-            return false;
+            return badgeNotFound(progress);
         }
 
         return blank();
@@ -434,38 +471,48 @@ bool BadgeHacker::ping(QProgressDialog * progress)
             blank();
     }
 
-    // attempt ping three times
-    progress->setLabelText(tr("Connecting to badge..."));
- 
     if (!read_data("ping"))
     {
-        read_data(QString(), 5000);
-        read_data("ping");
-    }
+        if (!blank())
+        {
+            return badgeNotFound(progress);
+        }
+        else
+        {
+            if (!read_data("ping"))
+            {
+                return firmwareNotFound(progress);
+            }
 
-    QMap<QString, QString> version = parseFirmwareString(replystrings[0]);
+        }
+    }
 
     if ( rawreply.isEmpty() 
             || replystrings.size() < 1 )
     {
-        return notFound(
-                tr("No Firmware Detected"),
-                tr("BadgeHacker detected no firmware on the badge. "
-                   "Would you like to install new firmware?\n\n"
-                   "NOTE: This will overwrite all contacts!"),
-                progress);
+        return firmwareNotFound(progress);
     }
+
+    progress->setLabelText(tr("Connecting to badge..."));
+    QMap<QString, QString> version = parseFirmwareString(replystrings[0]);
 
     if ( version != _expected )
     {
+        QString versionstring;
+
+        if (version["firmware"].isEmpty() || version["protocol"].isEmpty())
+            versionstring = "None";
+        else
+            versionstring = "v"+version["firmware"]+"."+version["protocol"];
+
         if (!notFound(
                 tr("Install New Firmware?"),
                 tr("Unexpected badge firmware detected:\n\n"
-                   "Found: %1.%2\n"
-                   "Expected: %3.%4\n\n"
+                   "Found: %1\n"
+                   "Expected: v%2.%3\n\n"
                    "Would you like to install new firmware?\n\n"
                    "NOTE: This will overwrite all contacts!")
-                        .arg(version["firmware"]).arg(version["protocol"])
+                        .arg(versionstring)
                         .arg(_expected["firmware"]).arg(_expected["protocol"]),
                 progress))
         {

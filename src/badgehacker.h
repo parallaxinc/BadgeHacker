@@ -40,6 +40,8 @@ private:
     QMap<QString, QString> parseFirmwareString(const QString & text);
     QMap<QString, QString> firmware();
 
+    void version();
+
 public:
     explicit BadgeHacker(PropellerManager * manager, QWidget *parent = 0);
     ~BadgeHacker();
@@ -101,6 +103,8 @@ private slots:
 
     bool blank();
     bool ping(QProgressDialog * progress);
+    bool firmwareNotFound(QProgressDialog * progress);
+    bool badgeNotFound(QProgressDialog * progress);
     bool notFound(const QString & title,
             const QString & text,
             QProgressDialog * progress);

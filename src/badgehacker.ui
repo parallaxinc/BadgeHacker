@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>589</width>
-    <height>735</height>
+    <width>491</width>
+    <height>768</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1046,6 +1046,20 @@ Fake County, CA 01234</string>
       </widget>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="Line" name="line_3">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="version">
+     <property name="text">
+      <string>BadgeHacker v0.0.0 (firmware 0.0)</string>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>
