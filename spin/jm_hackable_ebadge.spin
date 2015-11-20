@@ -1,6 +1,6 @@
 '' =================================================================================================
 ''
-''   File....... jm_hackable_ebadge__2015-11-19.spin
+''   File....... jm_hackable_ebadge__2015-11-19a.spin
 ''   Purpose.... Demo code for Parallax Hackable badge
 ''   Author..... Jon "JonnyMac" McPhalen
 ''               Copyright (C) 2015 Jon McPhalen
@@ -1121,7 +1121,7 @@ dat { valid command tokens }
                 byte    "  SCROLL [NO|YES]                 -- enable/disable scrolling", 13
                 byte    "  INFO [1..4] string              -- set info string (1..4)", 13
                 byte    "  ME                              -- display info strings", 13     
-                byte    "  CONTACTS {COUNT | WIPE}         -- display/wipe stored contacts", 13
+                byte    "  CONTACTS {USAGE|WIPE}           -- display/wipe stored contacts", 13
                 byte    "  BUTTONS                         -- display touchpad buttons", 13
                 byte    "  LED [0..5|ALL] [OFF|ON|pattern] -- set blue LEDs", 13
                 byte    "  RGB [COLOR|LEFT|RIGHT|] COLOR   -- set RGB LEDs", 13
