@@ -8,6 +8,8 @@
 
 #include <PropellerSession>
 
+#include "badge.h"
+
 #include "ui_badgehacker.h"
 
 Q_DECLARE_LOGGING_CATEGORY(badgehacker)
@@ -21,6 +23,8 @@ private:
     PropellerManager * manager;
     PropellerSession * session;
 
+    Badge * badge;
+
     QMap<QString, QString> _expected;
     QString rawreply;
     QString reply;
@@ -32,7 +36,6 @@ private:
     int read_timeout;
     bool ack;
     QString ledpattern;
-    QStringList colornames;
     QList<QStringList> contactlist;
     QStringList allcontacts;
 
@@ -55,11 +58,10 @@ private slots:
     void updatePorts();
     void setEnabled(bool enabled);
 
+    void update();
     void configure();
     void refresh();
     void wipe();
-    void update(QProgressDialog * progress);
-    bool program(QProgressDialog * progress);
     void clear();
 
     bool saveContacts();
@@ -68,22 +70,6 @@ private slots:
 
     void showContact(int index);
 
-    void wait_for_write();
-    void wait_for_ready();
-    void ready();
-    void start_ready(int milliseconds = 5000);
-
-    void read_line();
-    bool read_data(const QString & cmd = QString(), int timeout = 1000);
-
-    void write_line(const QString & line);
-
-    void write_oneitem_line(const QString & cmd, 
-                            const QString & line1);
-
-    void write_twoitem_line(const QString & cmd, 
-                            const QString & line1,
-                            const QString & line2);
     void write_nsmsg();
     void write_nsmsg1();
     void write_nsmsg2();
@@ -105,14 +91,6 @@ private slots:
     void write_rgb();
     void write_leftrgb();
     void write_rightrgb();
-
-    bool blank();
-    bool ping(QProgressDialog * progress);
-    bool firmwareNotFound(QProgressDialog * progress);
-    bool badgeNotFound(QProgressDialog * progress);
-    bool notFound(const QString & title,
-            const QString & text,
-            QProgressDialog * progress);
 
     void nsmsg();
     void smsg();

@@ -19,10 +19,12 @@ CONFIG -= app_bundle debug_and_release
 
 SOURCES += \
     badgehacker.cpp \
+    badge.cpp \
     main.cpp \
 
 HEADERS += \
     badgehacker.h \
+    badge.h \
 
 FORMS += \
     badgehacker.ui \
