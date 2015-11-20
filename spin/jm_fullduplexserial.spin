@@ -94,6 +94,11 @@ var { object globals }
   byte  txbuffer[BUF_SIZE] 
 
 
+pub null
+
+  ' This is not a top-level object
+  
+
 pub start(rxp, txp, mode, baudrate)
 
 '' Start serial driver (uses a cog, returns 1 to 8 if successful)

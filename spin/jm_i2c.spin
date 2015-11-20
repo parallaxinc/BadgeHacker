@@ -33,7 +33,12 @@ var
 
   long  scl                                                     ' buss pins
   long  sda
-    
+
+  
+pub null
+
+  ' This is not a top-level object
+  
 
 pub setup 
 

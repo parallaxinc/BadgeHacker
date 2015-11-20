@@ -57,10 +57,15 @@ private slots:
 
     void configure();
     void refresh();
+    void wipe();
     void update(QProgressDialog * progress);
     bool program(QProgressDialog * progress);
     void clear();
-    void saveContacts();
+
+    bool saveContacts();
+    void saveContactsAsText(QFile * file);
+    void saveContactsAsCsv(QFile * file);
+
     void showContact(int index);
 
     void wait_for_write();

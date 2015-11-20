@@ -45,7 +45,12 @@ var
   long  sda
 
   long  devid
-    
+
+
+pub null
+
+  ' This is not a top-level object
+
 
 pub start(device)
 

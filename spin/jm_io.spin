@@ -21,6 +21,11 @@ con { fixed io pins }
   SCL = 28
 
 
+pub null
+
+  ' This is not a top-level object
+
+
 pub start(pmask, dmask)
 
 '' Setup pins using pins and directions masks

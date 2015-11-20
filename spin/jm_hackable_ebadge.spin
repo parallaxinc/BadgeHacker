@@ -1,17 +1,20 @@
 '' =================================================================================================
 ''
-''   File....... jm_hackable_ebadge__2015-11-17b.spin
+''   File....... jm_hackable_ebadge__2015-11-19.spin
 ''   Purpose.... Demo code for Parallax Hackable badge
 ''   Author..... Jon "JonnyMac" McPhalen
 ''               Copyright (C) 2015 Jon McPhalen
 ''               -- see below for terms of use
 ''   E-mail..... jon@jonmcphalen.com
 ''   Started....
-''   Updated.... 17 NOV 2015
+''   Updated.... 19 NOV 2015
 ''
 '' =================================================================================================
 
 {
+  19 NOV 2015 -- Changed default value of ResetDB to NO
+                 * badge does not clear contacts when reprogrammed
+
   17 NOV 2015 -- Modified contact transmission for improved reliability
               -- Changed PING response per Brett for better BadgeHacker cooperation
               -- update object filenames for x-platform compatibility
@@ -144,7 +147,7 @@
 
 dat
 
-  DATE_CODE     byte    "Parallax eBadge (v100.10 2015-11-17)", 0
+  DATE_CODE     byte    "Parallax eBadge (v101.10 2015-11-19)", 0
 
 
 con { timing }
@@ -351,7 +354,7 @@ dat { name & contact information }
 ' Note: If ResetDB is set to YES (any non-zero value), the contacts database in upper EEPROM will be
 '       wiped clean
   
-  ResetDB       byte    YES
+  ResetDB       byte    NO
 
 
 ' Non-scrolling messages
@@ -1055,7 +1058,7 @@ con { enumerated parser tokens }
   #0, T_NSMSG, T_SMSG, T_SCROLL                                              { 
    }, T_NO, T_YES                                                            { 
    }, T_INFO, T_ME                                                           { 
-   }, T_CONTACTS, T_WIPE                                                     {
+   }, T_CONTACTS, T_WIPE, T_USAGE                                            {
    }, T_BUTTONS                                                              {    
    }, T_LED, T_ALL, T_OFF, T_ON                                              { 
    }, T_RGB, T_LEFT, T_RIGHT                                                 { 
@@ -1085,6 +1088,7 @@ dat { valid command tokens }
                 byte    "ME", 0       
                 byte    "CONTACTS", 0
                 byte    "WIPE", 0
+                byte    "USAGE", 0
                 byte    "BUTTONS",0   
                 byte    "LED", 0      
                 byte    "ALL", 0      
@@ -1117,7 +1121,7 @@ dat { valid command tokens }
                 byte    "  SCROLL [NO|YES]                 -- enable/disable scrolling", 13
                 byte    "  INFO [1..4] string              -- set info string (1..4)", 13
                 byte    "  ME                              -- display info strings", 13     
-                byte    "  CONTACTS {WIPE}                 -- display/wipe stored contacts", 13
+                byte    "  CONTACTS {COUNT | WIPE}         -- display/wipe stored contacts", 13
                 byte    "  BUTTONS                         -- display touchpad buttons", 13
                 byte    "  LED [0..5|ALL] [OFF|ON|pattern] -- set blue LEDs", 13
                 byte    "  RGB [COLOR|LEFT|RIGHT|] COLOR   -- set RGB LEDs", 13
@@ -1445,28 +1449,25 @@ pub get_contacts | idx
   if (parser.token_count == 2)                                   ' parameter after CONTACTS?
     parser.ucase(1) 
     idx := parser.get_token_id(parser.token_addr(1))
-    if (idx == T_WIPE)                                           ' is it WIPE?
-      wipe_db                                                    ' clear the contacts
-      leds.clear                                                 ' refresh display                   
-      dstate := MSG_NAME           
-      update_display(posx)         
-      scrollidx := -(NAME_CHARS-1) 
-      scrtmr.set(-SCROLL_MS)
-      term.tx(term#CLRDN) 
-    else
-      show_help
+    case idx
+      T_WIPE:
+        wipe_all_contacts
+        term.tx(term#CLRDN)
+
+      T_USAGE:
+        show_contacts_usage
+        term.tx(term#CLRDN)
+
+      other:
+        show_help 
+
     return
 
   if (parser.token_count <> 1)                                   ' invalid use of CONTACTS?     
     show_help 
     return    
   
-  term.dec(numcontacts)                                          ' display # of contacts
-  term.str(string(" contact"))
-  if (numcontacts <> 1)
-    term.tx("s")
-
-  term.tx(term#CR)  
+  show_contacts_usage
 
   if (numcontacts == 0)                                          ' if no contacts
     term.tx(term#CLRDN)
@@ -1491,6 +1492,28 @@ pub get_contacts | idx
 
   term.tx(term#CLRDN)
 
+
+pri wipe_all_contacts
+
+  wipe_db                                                        ' clear the contacts
+  leds.clear                                                     ' refresh display                   
+  dstate := MSG_NAME           
+  update_display(posx)         
+  scrollidx := -(NAME_CHARS-1) 
+  scrtmr.set(-SCROLL_MS)
+  
+
+pri show_contacts_usage
+
+  term.dec(numcontacts)                                          ' display # of contacts
+  term.str(string(" contact"))
+  if (numcontacts <> 1)
+    term.tx("s")
+  term.str(string(" -- "))
+  term.dec(MAX_CONTACTS - numcontacts)  
+  term.str(string(" slots available"))
+  term.tx(term#CR)  
+  
 
 pub show_buttons
 

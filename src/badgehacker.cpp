@@ -58,11 +58,11 @@ BadgeHacker::BadgeHacker(PropellerManager * manager,
     connect(ui.saveContacts, SIGNAL(clicked()), this, SLOT(saveContacts()));
 
     connect(ui.refresh, SIGNAL(clicked()), this, SLOT(refresh()));
+    connect(ui.wipe, SIGNAL(clicked()), this, SLOT(wipe()));
     connect(ui.activeButton, SIGNAL(toggled(bool)), this, SLOT(handleEnable(bool)));
 
     session->reset();
     readyTimer.setSingleShot(true);
-
     start_ready();
     connect(&readyTimer, SIGNAL(timeout()), this, SLOT(ready()));
 }
@@ -78,7 +78,7 @@ void BadgeHacker::version()
 {
     _expected = firmware();
 
-    ui.version->setText(tr("BadgeHacker v%1 (firmware %2.%3)")
+    ui.version->setText(tr("BadgeHacker v%1 (firmware v%2.%3)")
             .arg(qApp->applicationVersion())
             .arg(_expected["firmware"])
             .arg(_expected["protocol"]));
@@ -250,7 +250,7 @@ bool BadgeHacker::blank()
         qCDebug(badgehacker) << "hardware found";
     }
     session->reset();
-    _ready = read_data(QString(), 5000);
+    _ready = read_data(QString(), 6000);
     readyTimer.stop();
 
     return _ready;
@@ -377,8 +377,7 @@ bool BadgeHacker::firmwareNotFound(QProgressDialog * progress)
     return notFound(
             tr("No Firmware Detected"),
             tr("BadgeHacker detected no firmware on the badge. "
-               "Would you like to install new firmware?\n\n"
-               "NOTE: This will overwrite all contacts!"),
+               "Would you like to install new firmware?"),
             progress);
 }
 
@@ -510,8 +509,7 @@ bool BadgeHacker::ping(QProgressDialog * progress)
                 tr("Unexpected badge firmware detected:\n\n"
                    "Found: %1\n"
                    "Expected: v%2.%3\n\n"
-                   "Would you like to install new firmware?\n\n"
-                   "NOTE: This will overwrite all contacts!")
+                   "Would you like to install new firmware?")
                         .arg(versionstring)
                         .arg(_expected["firmware"]).arg(_expected["protocol"]),
                 progress))
@@ -546,6 +544,9 @@ void BadgeHacker::contacts()
         ui.contacts_count->setText(tr("0 Contacts"));
         return;
     }
+
+    QStringList totalstrings = replystrings[0].split(' ');
+    if (totalstrings.size() < 6) return;
     
     replystrings.removeAt(0);
     replystrings.removeAt(0);
@@ -554,10 +555,19 @@ void BadgeHacker::contacts()
     if (replystrings.size() < 5) return;
     if (replystrings.size() % 5 != 0) return;
 
+    int total_contacts = replystrings.size() / 5;
+
+    bool ok;
+    int expected_contacts = totalstrings[0].toInt(&ok);     if (!ok) return;
+    int max_contacts = totalstrings[3].toInt(&ok);          if (!ok) return;
+
+    if (total_contacts != expected_contacts) return;
+
     // process contact list
 
-    int total_contacts = replystrings.size() / 5;
-    ui.contacts_count->setText(tr("%1 Contacts").arg(total_contacts));
+    ui.contacts_count->setText(tr("%1 Contacts (max %2)")
+            .arg(total_contacts)
+            .arg(max_contacts));
 
     QString previous;
     contactlist.clear();
@@ -766,9 +776,10 @@ void BadgeHacker::setEnabled(bool enabled)
     ui.led5->setEnabled(enabled);
     ui.led6->setEnabled(enabled);
 
-    ui.configure->setEnabled(enabled);
-
     ui.refresh->setEnabled(enabled);
+    ui.configure->setEnabled(enabled);
+    ui.wipe->setEnabled(enabled);
+
     ui.port->setEnabled(enabled);
 
     if (enabled)
@@ -808,6 +819,9 @@ void BadgeHacker::configure()
     write_info();
     write_rgb();
     write_led();
+
+    start_ready(2000);
+    wait_for_ready();
 }
 
 void BadgeHacker::update(QProgressDialog * progress)
@@ -888,20 +902,78 @@ bool BadgeHacker::program(QProgressDialog * progress)
     if (!loader.upload(image, true))
         return false;
 
-    progress->setLabelText(tr("Wiping contact database..."));
-    progress->setValue(0);
-
-    start_ready(15000);
-    wait_for_ready();
-
     return true;
 }
 
-void BadgeHacker::saveContacts()
+void BadgeHacker::wipe()
+{
+    qCDebug(badgehacker) << "Wipe contacts on" << session->portName();
+
+    setEnabled(false);
+
+    QMessageBox box(QMessageBox::Warning,
+            tr("Wipe all contacts?"),
+            tr("You are about to erase all contacts from your badge. "
+               "Are you sure you want to continue?"));
+    box.setStandardButtons(QMessageBox::Yes | QMessageBox::Save | QMessageBox::Cancel);
+
+    box.setButtonText(QMessageBox::Save, tr("Save Contacts First"));
+    box.setButtonText(QMessageBox::Yes, tr("Continue"));
+
+    int ret = box.exec();
+    if (ret == QMessageBox::Cancel)
+    {
+        setEnabled(true);
+        return;
+    }
+    else if (ret == QMessageBox::Save)
+    {
+        if (!saveContacts())
+        {
+            setEnabled(true);
+            return;
+        }
+    }
+
+    QProgressDialog * progress = new QProgressDialog(this, Qt::WindowStaysOnTopHint);
+    progress->setCancelButton(0);
+    progress->setWindowTitle(tr("Loading..."));
+    progress->setLabelText(tr("Waiting for badge..."));
+    progress->setValue(0);
+    progress->show();
+
+    if (ping(progress))
+    {
+        progress->setLabelText(tr("Wiping contact database..."));
+        progress->setValue(0);
+
+        write_line("contacts wipe");
+
+        for (int i = 0; i < 100; i++)
+        {
+            progress->setValue(i);
+            start_ready(120);
+            wait_for_ready();
+        }
+    }
+
+    progress->setValue(100);
+    progress->hide();
+
+    delete progress;
+
+    setEnabled(true);
+}
+
+bool BadgeHacker::saveContacts()
 {
     qCDebug(badgehacker) << "Saving contacts from" << session->portName();
 
-    QFileDialog dialog(this, tr("Save Contacts"), QDir::homePath()+"/contacts.txt", tr("Text Files (*.txt)"));
+    QFileDialog dialog(this,
+            tr("Save Contacts"),
+            QDir::homePath()+"/contacts.txt",
+            tr("Text Files (*.txt);;CSV Files (*.csv)"));
+
     dialog.setDefaultSuffix("txt");
     dialog.setAcceptMode(QFileDialog::AcceptSave);
 
@@ -910,19 +982,41 @@ void BadgeHacker::saveContacts()
         filename = dialog.selectedFiles()[0];
 
     if (filename.isEmpty())
-        return;
+        return false;
+
+    QFileInfo fi(filename);
+    if (fi.suffix() != "txt" && fi.suffix() != "csv")
+    {
+        QMessageBox::warning(this,
+                tr("Unsupported file extension!"),
+                tr("The file extension \"%1\" is not supported by BadgeHacker.")
+                .arg(fi.suffix()));
+        return false;
+    }
 
     QFile file(filename);
     if (!file.open(QFile::WriteOnly | QFile::Text))
     {
-        QMessageBox::warning(this, tr("Recent Files"),
+        QMessageBox::warning(this, tr("Error opening file!"),
                     tr("Cannot write file %1:\n%2.")
                     .arg(filename)
                     .arg(file.errorString()));
-        return;
+        return false;
     }
 
-    QTextStream out(&file);
+    if (fi.suffix() == "txt")
+        saveContactsAsText(&file);
+    else if (fi.suffix() == "csv")
+        saveContactsAsCsv(&file);
+
+    file.close();
+    return true;
+}
+
+
+void BadgeHacker::saveContactsAsText(QFile * file)
+{
+    QTextStream out(file);
     out.setCodec("UTF-8");
 
     out << "Contacts for " << ui.nsmsgLine1->text().trimmed() << " "
@@ -954,5 +1048,38 @@ void BadgeHacker::saveContacts()
     }
 
     out.flush();
-    file.close();
+}
+
+void BadgeHacker::saveContactsAsCsv(QFile * file)
+{
+    QTextStream out(file);
+    out.setCodec("UTF-8");
+
+    out << "\"info 1\",";
+    out << "\"info 2\",";
+    out << "\"info 3\",";
+    out << "\"info 4\"\n";
+
+    foreach(QStringList contact, contactlist)
+    {
+        QStringList sl = contact;
+
+        if (contact.size() < 4)
+        {
+            for (int i = 0; i < 4 - contact.size() ; i++)
+                sl.append(QString());
+        }
+
+        for (int i = 0; i < sl.size(); i++)
+        {
+            out << "\"" << sl[i] << "\"";
+
+            if (i < sl.size()-1)
+                out << ",";
+        }
+
+        out << "\n";
+    }
+
+    out.flush();
 }

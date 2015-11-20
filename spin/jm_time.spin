@@ -31,6 +31,11 @@ dat
   deltatix    long      0                                        ' tix delta for rollover      
 
 
+pub null
+
+  ' This is not a top-level object
+  
+  
 pub start 
 
 '' Start or restart the timer object

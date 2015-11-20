@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>491</width>
-    <height>768</height>
+    <width>627</width>
+    <height>816</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -85,6 +85,29 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="wipe">
+       <property name="toolTip">
+        <string>Wipe contacts</string>
+       </property>
+       <property name="statusTip">
+        <string>Wipe contacts</string>
+       </property>
+       <property name="whatsThis">
+        <string>Erase all contacts from the badge.</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../icons/icons.qrc">
+         <normaloff>:/icons/badgehacker/clean_sm.png</normaloff>:/icons/badgehacker/clean_sm.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>24</width>
+         <height>24</height>
+        </size>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="configure">

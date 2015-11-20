@@ -8,5 +8,6 @@
     <file>reset_sm.png</file>
     <file>send.png</file>
     <file>send_sm.png</file>
+    <file>clean_sm.png</file>
 </qresource>
 </RCC>
