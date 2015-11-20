@@ -23,7 +23,7 @@ Badge::Badge(PropellerManager * manager,
 {
     this->manager = manager;
 
-    _expected = firmware();
+    _expected = readFirmware();
 
     read_timeout = 50;
     ledpattern = QString(6,'0');
@@ -32,7 +32,7 @@ Badge::Badge(PropellerManager * manager,
                << "red" << "magenta" << "yellow" << "white";
 
     connect(this, SIGNAL(readyRead()), this, SLOT(read_line()));
-    connect(&readyTimer, SIGNAL(timeout()), this, SLOT(ready()));
+    connect(&readyTimer, SIGNAL(timeout()), this, SLOT(set_ready()));
 
     readyTimer.setSingleShot(true);
 
@@ -50,7 +50,12 @@ void Badge::start_ready(int milliseconds)
     readyTimer.start(milliseconds);
 }
 
-void Badge::ready()
+bool Badge::ready()
+{
+    return _ready;
+}
+
+void Badge::set_ready()
 {
     _ready = true;
 }
@@ -113,15 +118,19 @@ bool Badge::blank()
 
     PropellerLoader loader(manager, portName());
 
-    bool ldr = loader.version();
-    if (!ldr)
+    int hw = loader.version();
+    if (!hw)
     {
-        qDebug() << "Failed to detect hardware";
+        qDebug() << "no hardware detected";
         return false;
     }
     else
     {
-        qCDebug(badge) << "hardware found";
+        QString hwstring;
+        if (hw == 1) hwstring = "Propeller 1";
+        else hwstring = "Unknown";
+
+        qCDebug(badge) << "hardware:" << qPrintable(hwstring);
     }
     reset();
     _ready = read_data(QString(), 6000);
@@ -181,7 +190,10 @@ QList<bool> Badge::led()
 const QString Badge::rgbPatternToString(const QString & string)
 {
     QString color;
-    int i = string.toInt();
+    bool ok;
+    int i = string.toInt(&ok);
+    if (!ok) return "black";
+
     switch (i)
     {
         case   0: color = "black";  break ;;
@@ -208,7 +220,17 @@ QStringList Badge::rgb()
     return rgbs;
 }
 
+QMap<QString, QString> Badge::version()
+{
+    return _version;
+}
+
 QMap<QString, QString> Badge::firmware()
+{
+    return _expected;
+}
+
+QMap<QString, QString> Badge::readFirmware()
 {
     QFile file(":/spin/jm_hackable_ebadge.spin");
     file.open(QFile::ReadOnly);
@@ -260,109 +282,6 @@ QMap<QString, QString> Badge::parseFirmwareString(const QString & text)
 }
 
 
-bool Badge::badgeNotFound()
-{
-    QMessageBox::critical(0,
-            tr("Badge Not Found!"),
-            tr("There doesn't appear to be a badge attached. "
-               "Please make sure that the power is on!"));
-    return false;
-}
-
-bool Badge::firmwareNotFound()
-{
-    return notFound(
-            tr("No Firmware Detected"),
-            tr("Badge detected no firmware on the badge. "
-               "Would you like to install new firmware?"));
-}
-
-bool Badge::notFound(const QString & title,
-        const QString & text)
-{
-    QMessageBox box(QMessageBox::Warning, title, text);
-    box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-
-    int ret = box.exec();
-    if (ret == QMessageBox::Yes)
-    {
-        if (!program())
-        {
-            return badgeNotFound();
-        }
-
-        return blank();
-    }
-    else
-        return false;
-}
-
-bool Badge::ping()
-{
-    if (!isOpen())
-        blank();
-
-    if (!_ready)
-    {
-        if (readyTimer.isActive())
-            wait_for_ready();
-        else
-            blank();
-    }
-
-    if (!read_data("ping"))
-    {
-        if (!blank())
-        {
-            return badgeNotFound();
-        }
-        else
-        {
-            if (!read_data("ping"))
-            {
-                return firmwareNotFound();
-            }
-
-        }
-    }
-
-    if ( rawreply.isEmpty() 
-            || replystrings.size() < 1 )
-    {
-        return firmwareNotFound();
-    }
-
-    QMap<QString, QString> version = parseFirmwareString(replystrings[0]);
-
-    if ( version != _expected )
-    {
-        QString versionstring;
-
-        if (version["firmware"].isEmpty() || version["protocol"].isEmpty())
-            versionstring = "None";
-        else
-            versionstring = "v"+version["firmware"]+"."+version["protocol"];
-
-        if (!notFound(
-                tr("Install New Firmware?"),
-                tr("Unexpected badge firmware detected:\n\n"
-                   "Found: %1\n"
-                   "Expected: v%2.%3\n\n"
-                   "Would you like to install new firmware?")
-                        .arg(versionstring)
-                        .arg(_expected["firmware"]).arg(_expected["protocol"])))
-        {
-            if (version["protocol"] != _expected["protocol"])
-                return false;
-            else
-                return true;
-        }
-    }
-
-    return true;
-}
-
-
 QList<QStringList> Badge::contacts()
 {
     read_data("contacts");
@@ -403,6 +322,7 @@ QList<QStringList> Badge::contacts()
                 contact.append(replystrings[i*5 + j]);
         }
 
+        // sort contacts
         if (!contact.isEmpty())
         {
             if (QString::localeAwareCompare(contact[0], previous) < 0)
@@ -533,16 +453,8 @@ void Badge::write_rgb(const QString & left, const QString & right)
 
 void Badge::wipe()
 {
-    if (ping())
-    {
-        write_line("contacts wipe");
-
-        for (int i = 0; i < 100; i++)
-        {
-            start_ready(120);
-            wait_for_ready();
-        }
-    }
+    qCDebug(badge) << qPrintable(portName()) << "wipe()";
+    write_line("contacts wipe");
 }
 
 
@@ -551,19 +463,62 @@ QStringList Badge::colors()
     return colornames;
 }
 
+Badge::BadgeError Badge::ping()
+{
+    qCDebug(badge) << qPrintable(portName()) << "ping()";
+    if (!isOpen())
+        blank();
+
+
+    if (!ready())
+    {
+        if (readyTimer.isActive())
+            wait_for_ready();
+        else
+            blank();
+    }
+
+    if (!read_data("ping"))
+    {
+        if (!blank())
+        {
+            return BadgeNotFoundError;
+        }
+        else
+        {
+            if (!read_data("ping"))
+            {
+                return FirmwareNotFoundError;
+            }
+        }
+    }
+
+    if ( rawreply.isEmpty() 
+            || replystrings.size() < 1 )
+    {
+        return FirmwareNotFoundError;
+    }
+
+    _version = parseFirmwareString(replystrings[0]);
+
+    if ( _version != _expected )
+    {
+        return UnexpectedFirmwareError;
+
+    }
+
+    return NoError;
+}
 
 bool Badge::program()
 {
-    qCDebug(badge) << "program()" << portName();
+    qCDebug(badge) << qPrintable(portName()) << "program()";
 
     PropellerLoader loader(manager, portName());
 
     QFile file(":/spin/jm_hackable_ebadge.binary");
     file.open(QIODevice::ReadOnly);
     PropellerImage image = PropellerImage(file.readAll());
-    if (!loader.upload(image, true))
-        return false;
-
-    return true;
+    return loader.upload(image, true);
 }
 

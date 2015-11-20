@@ -14,11 +14,19 @@ class Badge : public PropellerSession
 {
     Q_OBJECT
 
+public:
+    enum BadgeError {
+        NoError,
+        BadgeNotFoundError,
+        FirmwareNotFoundError,
+        UnexpectedFirmwareError
+    };
 
 private:
     PropellerManager * manager;
 
     QMap<QString, QString> _expected;
+    QMap<QString, QString> _version;
     QString rawreply;
     QString reply;
     QStringList replystrings;
@@ -34,22 +42,31 @@ private:
     QStringList allcontacts;
 
     const QString rgbPatternToString(const QString & string);
+    QMap<QString, QString> readFirmware();
     QMap<QString, QString> parseFirmwareString(const QString & text);
 
-public:
-    explicit Badge(PropellerManager * manager,
-            const QString & portname = QString(),
-            QObject *parent = 0);
-    ~Badge();
-
-    QStringList colors();
-    QMap<QString, QString> firmware();
+private slots:
+    void set_ready();
 
 
 public slots:
-    void wipe();
+    void read_line();
+    bool read_data(const QString & cmd = QString(), int timeout = 1000);
+
+    void write_line(const QString & line);
+
+    void write_oneitem_line(const QString & cmd, 
+                            const QString & line1);
+
+    void write_twoitem_line(const QString & cmd, 
+                            const QString & line1,
+                            const QString & line2);
+
     void start_ready(int milliseconds = 5000);
     void wait_for_ready();
+    void wait_for_write();
+    Badge::BadgeError ping();
+    bool ready();
 
     void write_nsmsg(const QString & line1, const QString & line2);
     void write_nsmsg1(const QString & text);
@@ -73,28 +90,8 @@ public slots:
     void write_leftrgb (const QString & color);
     void write_rightrgb(const QString & color);
 
-    bool ping();
-    bool firmwareNotFound();
-    bool badgeNotFound();
     bool program();
-    bool notFound(const QString & title,
-            const QString & text);
-
-    void wait_for_write();
-    void ready();
-
-    void read_line();
-    bool read_data(const QString & cmd = QString(), int timeout = 1000);
-
-    void write_line(const QString & line);
-
-    void write_oneitem_line(const QString & cmd, 
-                            const QString & line1);
-
-    void write_twoitem_line(const QString & cmd, 
-                            const QString & line1,
-                            const QString & line2);
-
+    void wipe();
     bool blank();
 
     QStringList         nsmsg();
@@ -104,6 +101,16 @@ public slots:
     QList<QStringList>  contacts();
     QList<bool>         led();
     QStringList         rgb();
+
+public:
+    explicit Badge(PropellerManager * manager,
+            const QString & portname = QString(),
+            QObject *parent = 0);
+    ~Badge();
+
+    QStringList colors();
+    QMap<QString, QString> firmware();
+    QMap<QString, QString> version();
 
 signals:
     void finished();

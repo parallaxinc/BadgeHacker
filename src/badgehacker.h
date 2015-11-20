@@ -21,28 +21,11 @@ class BadgeHacker : public QWidget
 private:
     Ui::BadgeHacker ui;
     PropellerManager * manager;
-    PropellerSession * session;
 
     Badge * badge;
-
     QMap<QString, QString> _expected;
-    QString rawreply;
-    QString reply;
-    QStringList replystrings;
-    QTimer timer;
-    QTimer updateTimer;
-    bool _ready;
-    QTimer readyTimer;
-    int read_timeout;
-    bool ack;
-    QString ledpattern;
+
     QList<QStringList> contactlist;
-    QStringList allcontacts;
-
-    const QString rgbPatternToString(const QString & string);
-    QMap<QString, QString> parseFirmwareString(const QString & text);
-    QMap<QString, QString> firmware();
-
     void version();
 
 public:
@@ -58,17 +41,27 @@ private slots:
     void updatePorts();
     void setEnabled(bool enabled);
 
-    void update();
+    bool program(QProgressDialog * progress);
+    bool ping(QProgressDialog * progress);
+    void update(QProgressDialog * progress);
+
     void configure();
     void refresh();
     void wipe();
-    void clear();
+    bool unexpectedFirmware(QProgressDialog * progress);
+    bool firmwareNotFound(QProgressDialog * progress);
+    bool badgeNotFound(QProgressDialog * progress);
+    bool notFound(const QString & title,
+            const QString & text,
+            QProgressDialog * progress);
 
     bool saveContacts();
     void saveContactsAsText(QFile * file);
     void saveContactsAsCsv(QFile * file);
 
     void showContact(int index);
+
+    void clear();
 
     void write_nsmsg();
     void write_nsmsg1();

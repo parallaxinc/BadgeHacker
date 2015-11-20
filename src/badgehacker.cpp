@@ -26,11 +26,6 @@ BadgeHacker::BadgeHacker(PropellerManager * manager,
 
     version();
 
-    read_timeout = 50;
-    ledpattern = QString(6,'0');
-
-    updatePorts();
-
     foreach (const QString & colorname, badge->colors()) {
             const QColor color(colorname);
 
@@ -54,9 +49,11 @@ BadgeHacker::BadgeHacker(PropellerManager * manager,
     connect(ui.configure, SIGNAL(clicked()), this, SLOT(configure()));
     connect(ui.refresh, SIGNAL(clicked()), this, SLOT(refresh()));
     connect(ui.wipe, SIGNAL(clicked()), this, SLOT(wipe()));
+    connect(ui.wipe, SIGNAL(clicked()), qApp, SLOT(aboutQt()));
     connect(ui.activeButton, SIGNAL(toggled(bool)), this, SLOT(handleEnable(bool)));
     connect(ui.contactList, SIGNAL(currentRowChanged(int)), this, SLOT(showContact(int)));
 
+    updatePorts();
 }
 
 BadgeHacker::~BadgeHacker()
@@ -184,7 +181,7 @@ void BadgeHacker::info()
 void BadgeHacker::led()
 {
     QList<bool> leds = badge->led();
-    if (replystrings.size() < 6) return;
+    if (leds.size() < 6) return;
 
     ui.led1->setChecked(leds[0]);
     ui.led2->setChecked(leds[1]);
@@ -201,28 +198,10 @@ void BadgeHacker::led()
     ui.led6->setEnabled(true);
 }
 
-const QString BadgeHacker::rgbPatternToString(const QString & string)
-{
-    QString color;
-    int i = string.toInt();
-    switch (i)
-    {
-        case 0:   color = "black";  break ;;
-        case 1:   color = "blue";   break ;;
-        case 10:  color = "green";  break ;;
-        case 11:  color = "cyan";   break ;;
-        case 100: color = "red";    break ;;
-        case 101: color = "magenta";break ;;
-        case 110: color = "yellow"; break ;;
-        case 111: color = "white";  break ;;
-    }
-    return color;
-}
-
 void BadgeHacker::rgb()
 {
     QStringList data = badge->rgb();
-    if (replystrings.size() < 2) return;
+    if (data.size() < 2) return;
 
     ui.leftRgb->setCurrentIndex( ui.leftRgb->findText( data[0]));
     ui.rightRgb->setCurrentIndex(ui.rightRgb->findText(data[1]));
@@ -428,41 +407,6 @@ void BadgeHacker::clear()
     connect(ui.contactList, SIGNAL(currentRowChanged(int)), this, SLOT(showContact(int)));
 }
 
-void BadgeHacker::wipe()
-{
-    qCDebug(badgehacker) << "Wipe contacts on" << badge->portName();
-
-    setEnabled(false);
-
-    QMessageBox box(QMessageBox::Warning,
-            tr("Wipe all contacts?"),
-            tr("You are about to erase all contacts from your badge. "
-               "Are you sure you want to continue?"));
-    box.setStandardButtons(QMessageBox::Yes | QMessageBox::Save | QMessageBox::Cancel);
-
-    box.setButtonText(QMessageBox::Save, tr("Save Contacts First"));
-    box.setButtonText(QMessageBox::Yes, tr("Continue"));
-
-    int ret = box.exec();
-    if (ret == QMessageBox::Cancel)
-    {
-        setEnabled(true);
-        return;
-    }
-    else if (ret == QMessageBox::Save)
-    {
-        if (!saveContacts())
-        {
-            setEnabled(true);
-            return;
-        }
-    }
-
-    badge->wipe();
-
-    setEnabled(true);
-}
-
 bool BadgeHacker::saveContacts()
 {
     qCDebug(badgehacker) << "Saving contacts from" << badge->portName();
@@ -603,26 +547,226 @@ void BadgeHacker::refresh()
     qCDebug(badgehacker) << "refresh()";
 
     setEnabled(false);
+
+    QProgressDialog * progress = new QProgressDialog(this, Qt::WindowStaysOnTopHint);
+    progress->setCancelButton(0);
+    progress->setWindowTitle(tr("Loading..."));
+    progress->setLabelText(tr("Waiting for badge..."));
+    progress->setValue(0);
+    progress->show();
     
     clear();
 
-    if (badge->ping())
-        update();
+    if (ping(progress))
+        update(progress);
+
+    progress->setValue(100);
+    progress->hide();
+
+    delete progress;
 
     setEnabled(true);
 }
 
-void BadgeHacker::update()
+void BadgeHacker::update(QProgressDialog * progress)
 {
     qCDebug(badgehacker) << "update()";
 
+    progress->setValue(0);
     clear();
+
+    progress->setLabelText(tr("Getting scroll enable..."));
+    progress->setValue(10);
     scroll();
+
+    progress->setLabelText(tr("Getting non-scrolling text..."));
+    progress->setValue(20);
     nsmsg();
+
+    progress->setLabelText(tr("Getting scrolling text..."));
+    progress->setValue(40);
     smsg();
+
+    progress->setLabelText(tr("Getting shareable info..."));
+    progress->setValue(50);
     info();
+
+
+    progress->setLabelText(tr("Getting LED config..."));
+    progress->setValue(50);
     rgb();
     led();
+
+    progress->setLabelText(tr("Getting contacts..."));
+    progress->setValue(70);
     contacts();
+
+    progress->setValue(100);
+}
+
+bool BadgeHacker::ping(QProgressDialog * progress)
+{
+    Badge::BadgeError result = badge->ping();
+
+    switch (result)
+    {
+        case Badge::NoError:
+            return true;
+
+        case Badge::BadgeNotFoundError:
+            return badgeNotFound(progress);
+
+        case Badge::FirmwareNotFoundError:
+            return firmwareNotFound(progress);
+
+        case Badge::UnexpectedFirmwareError:
+            return unexpectedFirmware(progress);
+    }
+}
+
+
+void BadgeHacker::wipe()
+{
+    qCDebug(badgehacker) << "Wipe contacts on" << badge->portName();
+
+    setEnabled(false);
+
+    QMessageBox box(QMessageBox::Warning,
+            tr("Wipe all contacts?"),
+            tr("You are about to erase all contacts from your badge. "
+               "Are you sure you want to continue?"));
+    box.setStandardButtons(QMessageBox::Yes | QMessageBox::Save | QMessageBox::Cancel);
+
+    box.setButtonText(QMessageBox::Save, tr("Save Contacts First"));
+    box.setButtonText(QMessageBox::Yes, tr("Continue"));
+
+    int ret = box.exec();
+    if (ret == QMessageBox::Cancel)
+    {
+        setEnabled(true);
+        return;
+    }
+    else if (ret == QMessageBox::Save)
+    {
+        if (!saveContacts())
+        {
+            setEnabled(true);
+            return;
+        }
+    }
+
+    QProgressDialog * progress = new QProgressDialog(this, Qt::WindowStaysOnTopHint);
+    progress->setCancelButton(0);
+    progress->setWindowTitle(tr("Loading..."));
+    progress->setLabelText(tr("Waiting for badge..."));
+    progress->setValue(0);
+    progress->show();
+
+    if (ping(progress))
+    {
+        progress->setLabelText(tr("Wiping contact database..."));
+        progress->setValue(0);
+
+        badge->wipe();
+
+        for (int i = 0; i < 100; i++)
+        {
+            progress->setValue(i);
+            badge->start_ready(120);
+            badge->wait_for_ready();
+        }
+    }
+
+    progress->setValue(100);
+    progress->hide();
+
+    delete progress;
+
+    setEnabled(true);
+}
+
+bool BadgeHacker::program(QProgressDialog * progress)
+{
+    qCDebug(badgehacker) << "Programming badge on" << badge->portName();
+
+    progress->show();
+    progress->setLabelText(tr("Writing badge firmware..."));
+    progress->setValue(0);
+
+    return badge->program();
+}
+
+bool BadgeHacker::badgeNotFound(QProgressDialog * progress)
+{
+    progress->hide();
+    QMessageBox::critical(this,
+            tr("Badge Not Found!"),
+            tr("There doesn't appear to be a badge attached. "
+               "Please make sure that the power is on!"));
+    return false;
+}
+
+bool BadgeHacker::firmwareNotFound(QProgressDialog * progress)
+{
+    return notFound(
+            tr("No Firmware Detected"),
+            tr("BadgeHacker detected no firmware on the badge. "
+               "Would you like to install new firmware?"),
+            progress);
+}
+
+bool BadgeHacker::unexpectedFirmware(QProgressDialog * progress)
+{
+    QMap<QString, QString> version = badge->version();
+    QString versionstring;
+
+    if (version["firmware"].isEmpty() || version["protocol"].isEmpty())
+        versionstring = "None";
+    else
+        versionstring = "v"+version["firmware"]+"."+version["protocol"];
+
+    if (!notFound(
+            tr("Install New Firmware?"),
+            tr("Unexpected badge firmware detected:\n\n"
+               "Found: %1\n"
+               "Expected: v%2.%3\n\n"
+               "Would you like to install new firmware?")
+                    .arg(versionstring)
+                    .arg(_expected["firmware"]).arg(_expected["protocol"]),
+            progress))
+    {
+        if (version["protocol"] != _expected["protocol"])
+            return false;
+        else
+            return true;
+    }
+
+    return true;
+}
+
+
+bool BadgeHacker::notFound(const QString & title,
+        const QString & text,
+        QProgressDialog * progress)
+{
+    QMessageBox box(QMessageBox::Warning, title, text);
+    box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+
+    progress->hide();
+    
+    int ret = box.exec();
+    if (ret == QMessageBox::Yes)
+    {
+        progress->show();
+
+        if (!program(progress))
+        {
+            return badgeNotFound(progress);
+        }
+
+        return badge->blank();
+    }
+    else
+        return false;
 }
 
