@@ -15,6 +15,9 @@ case "$PLATFORM" in
 #    tar xzf qt5.5.0-linux-g++.tgz
 #    mv local/ /home/travis/local/
 
+    sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ vivid universe"
+    sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ vivid-updates universe"
+
     sudo -E apt-get -yq --no-install-suggests --no-install-recommends --force-yes update
     sudo -E apt-get -yq --no-install-suggests --no-install-recommends --force-yes install libqt5serialport5-dev
     ;;
