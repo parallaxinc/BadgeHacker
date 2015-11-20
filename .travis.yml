@@ -13,8 +13,6 @@ addons:
       - debhelper
       - libudev-dev
       - imagemagick
-      - qt5-default
-      - libqt5serialport5-dev
 matrix:
   include:
 
