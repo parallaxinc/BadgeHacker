@@ -21,6 +21,7 @@ class HackerGang : public QWidget
 private:
     Ui::HackerGang ui;
     PropellerManager * manager;
+    QStringList ports;
 
     QList<QStringList> contactlist;
 
@@ -30,7 +31,9 @@ public:
 
 private slots:
     void updatePorts();
-//    void program();
 //    void openContacts();
 //    void saveContacts();
+
+signals:
+    void program();
 };

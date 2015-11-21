@@ -34,6 +34,9 @@ public:
             QWidget *parent = 0);
     ~BadgeRow();
 
+    const QString & portName();
+
 public slots:
     void setBadgeEnabled(bool enabled);
+    void program();
 };

@@ -14,7 +14,7 @@
 #include <PropellerImage>
 
 
-Q_LOGGING_CATEGORY(badge, "badgehacker.badge")
+Q_LOGGING_CATEGORY(badge, "badge")
 
 Badge::Badge(PropellerManager * manager,
         const QString & portname,

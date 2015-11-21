@@ -5,6 +5,8 @@
 
 int main(int argc, char *argv[])
 {
+    qSetMessagePattern("[%{time hh:mm:ss}] %{category}: %{message}");
+
     QApplication a(argc, argv);
 
     QApplication::setOrganizationName("Parallax");

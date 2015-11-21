@@ -86,3 +86,13 @@ void BadgeRow::setBadgeEnabled(bool enabled)
     ui.message->setEnabled(enabled);
     ui.status->setEnabled(enabled);
 }
+
+const QString & BadgeRow::portName()
+{
+    return badge->portName();
+}
+
+void BadgeRow::program()
+{
+    badge->program();
+}
