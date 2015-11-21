@@ -9,5 +9,8 @@
     <file>send.png</file>
     <file>send_sm.png</file>
     <file>clean_sm.png</file>
+    <file>dialog-plain_sm.png</file>
+    <file>dialog-accept_sm.png</file>
+    <file>dialog-reject_sm.png</file>
 </qresource>
 </RCC>

@@ -21,14 +21,20 @@ CONFIG -= app_bundle debug_and_release
 
 SOURCES += \
     badgehacker.cpp \
+    hackergang.cpp \
     badge.cpp \
+    badgerow.cpp \
 
 HEADERS += \
     badgehacker.h \
+    hackergang.h \
     badge.h \
+    badgerow.h \
 
 FORMS += \
     badgehacker.ui \
+    badgerow.ui \
+    hackergang.ui \
 
 RESOURCES += \
     ../icons/icons.qrc \

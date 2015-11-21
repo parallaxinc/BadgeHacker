@@ -1,2 +1,7 @@
 refresh.png is from the Open Clip Art Library, which released it explicitly into the public domain (see here).
 reset.png is made available under the Creative Commons CC0 1.0 Universal Public Domain Dedication.
+
+Public domain:
+
+dialog-accept.png (https://commons.wikimedia.org/wiki/File:Dialog-accept.svg)
+dialog-accept.png (https://commons.wikimedia.org/wiki/File:Dialog-error-round.svg)
