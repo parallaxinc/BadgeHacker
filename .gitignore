@@ -37,3 +37,4 @@ Makefile*
 build/
 
 /bin
+/lib

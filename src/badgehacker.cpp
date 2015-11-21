@@ -622,6 +622,8 @@ bool BadgeHacker::ping(QProgressDialog * progress)
         case Badge::UnexpectedFirmwareError:
             return unexpectedFirmware(progress);
     }
+
+    return true;
 }
 
 

@@ -1,8 +1,10 @@
 QT += widgets serialport
 
+TEMPLATE = lib
 TARGET = badgehacker
-TEMPLATE = app
-DESTDIR = ../bin/
+DESTDIR = ../lib/
+
+CONFIG += staticlib
 
 INCLUDEPATH += ../propellermanager/include/
 LIBS += -L../propellermanager/lib/  -lpropellermanager
@@ -20,7 +22,6 @@ CONFIG -= app_bundle debug_and_release
 SOURCES += \
     badgehacker.cpp \
     badge.cpp \
-    main.cpp \
 
 HEADERS += \
     badgehacker.h \

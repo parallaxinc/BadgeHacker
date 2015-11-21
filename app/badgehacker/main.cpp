@@ -1,7 +1,7 @@
 #include <QApplication>
 #include <QDesktopWidget>
 
-#include "badgehacker.h"
+#include <BadgeHacker>
 
 int main(int argc, char *argv[])
 {
