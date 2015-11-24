@@ -159,7 +159,9 @@ void BadgeHacker::smsg()
 
 void BadgeHacker::scroll()
 {
-    ui.scroll->setEnabled(badge->scroll());
+    bool enabled = badge->scroll();
+    ui.scroll->setChecked(enabled);
+    ui.scroll->setEnabled(enabled);
 }
 
 void BadgeHacker::info()

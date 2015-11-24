@@ -6,7 +6,7 @@
 #include <QProgressDialog>
 #include <QMap>
 
-#include <PropellerSession>
+#include <PropellerLoader>
 
 Q_DECLARE_LOGGING_CATEGORY(badge)
 
@@ -24,6 +24,7 @@ public:
 
 private:
     PropellerManager * manager;
+    PropellerLoader * loader;
 
     QMap<QString, QString> _expected;
     QMap<QString, QString> _version;
@@ -114,4 +115,7 @@ public:
 
 signals:
     void finished();
+    void success();
+    void failure();
+    void statusChanged(const QString &);
 };

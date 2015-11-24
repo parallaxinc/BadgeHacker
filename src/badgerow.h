@@ -18,6 +18,7 @@ private:
     enum BadgeState
     {
         BadgeIdle,
+        BadgeInProgress,
         BadgeError,
         BadgeSuccess,
         BadgeDisabled
@@ -39,4 +40,7 @@ public:
 public slots:
     void setBadgeEnabled(bool enabled);
     void program();
+    void success();
+    void failure();
+
 };

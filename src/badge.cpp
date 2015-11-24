@@ -22,10 +22,11 @@ Badge::Badge(PropellerManager * manager,
 : PropellerSession(manager, portname, parent)
 {
     this->manager = manager;
+    loader = new PropellerLoader(manager, portName());
 
     _expected = readFirmware();
 
-    read_timeout = 50;
+    read_timeout = 200;
     ledpattern = QString(6,'0');
 
     colornames << "black" << "blue" << "green" << "cyan" 
@@ -33,6 +34,12 @@ Badge::Badge(PropellerManager * manager,
 
     connect(this, SIGNAL(readyRead()), this, SLOT(read_line()));
     connect(&readyTimer, SIGNAL(timeout()), this, SLOT(set_ready()));
+
+    connect(loader, SIGNAL(statusChanged(const QString &)),
+            this,   SIGNAL(statusChanged(const QString &)));
+
+    connect(loader, SIGNAL(success()), this, SIGNAL(success()));
+    connect(loader, SIGNAL(failure()), this, SIGNAL(failure()));
 
     readyTimer.setSingleShot(true);
 
@@ -42,6 +49,7 @@ Badge::Badge(PropellerManager * manager,
 
 Badge::~Badge()
 {
+    delete loader;
 }
 
 void Badge::start_ready(int milliseconds)
@@ -77,7 +85,7 @@ void Badge::read_line()
         }
     }
 
-//    timer.start(read_timeout);
+    timer.start(read_timeout);
 }
 
 bool Badge::read_data(const QString & cmd, int timeout)
@@ -116,9 +124,7 @@ bool Badge::blank()
 {
     start_ready();
 
-    PropellerLoader loader(manager, portName());
-
-    int hw = loader.version();
+    int hw = loader->version();
     if (!hw)
     {
         qDebug() << "no hardware detected";
@@ -132,6 +138,7 @@ bool Badge::blank()
 
         qCDebug(badge) << "hardware:" << qPrintable(hwstring);
     }
+
     reset();
     _ready = read_data(QString(), 6000);
     readyTimer.stop();
@@ -514,11 +521,9 @@ bool Badge::program()
 {
     qCDebug(badge) << qPrintable(portName()) << "program()";
 
-    PropellerLoader loader(manager, portName());
-
     QFile file(":/spin/jm_hackable_ebadge.binary");
     file.open(QIODevice::ReadOnly);
     PropellerImage image = PropellerImage(file.readAll());
-    return loader.upload(image, true);
+    return loader->upload(image, false);
 }
 

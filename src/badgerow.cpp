@@ -16,6 +16,12 @@ BadgeRow::BadgeRow(PropellerManager * manager,
 
     connect(ui.enable, SIGNAL(clicked(bool)),   this, SLOT(badgeStateChanged()));
 
+    connect(badge,      SIGNAL(statusChanged(const QString &)),
+            ui.message, SLOT(setText(const QString &)));
+
+    connect(badge, SIGNAL(success()), this, SLOT(success()));
+    connect(badge, SIGNAL(failure()), this, SLOT(failure()));
+
     setBadgeState(BadgeIdle);
 }
 
@@ -34,6 +40,13 @@ void BadgeRow::setBadgeState(BadgeState state)
             setBadgeEnabled(true);
             p.setColor(QPalette::Window, QColor("#CDCDCD"));
             p.setColor(QPalette::WindowText, QColor("#3C3C3C"));
+            ui.status->setPixmap(QPixmap(":/icons/badgehacker/dialog-plain_sm.png"));
+            break;
+
+        case BadgeInProgress:
+            setBadgeEnabled(true);
+            p.setColor(QPalette::Window, QColor("#FFFFB4"));
+            p.setColor(QPalette::WindowText, QColor("#808000"));
             ui.status->setPixmap(QPixmap(":/icons/badgehacker/dialog-plain_sm.png"));
             break;
 
@@ -94,5 +107,16 @@ const QString & BadgeRow::portName()
 
 void BadgeRow::program()
 {
+    setBadgeState(BadgeInProgress);
     badge->program();
+}
+
+void BadgeRow::success()
+{
+    setBadgeState(BadgeSuccess);
+}
+
+void BadgeRow::failure()
+{
+    setBadgeState(BadgeError);
 }
