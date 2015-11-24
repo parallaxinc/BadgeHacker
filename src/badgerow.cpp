@@ -107,8 +107,11 @@ const QString & BadgeRow::portName()
 
 void BadgeRow::program()
 {
-    setBadgeState(BadgeInProgress);
-    badge->program();
+    if (ui.enable->isChecked())
+    {
+        setBadgeState(BadgeInProgress);
+        badge->program();
+    }
 }
 
 void BadgeRow::success()
