@@ -524,6 +524,6 @@ bool Badge::program()
     QFile file(":/spin/jm_hackable_ebadge.binary");
     file.open(QIODevice::ReadOnly);
     PropellerImage image = PropellerImage(file.readAll());
-    return loader->upload(image, false);
+    return loader->upload(image, true);
 }
 

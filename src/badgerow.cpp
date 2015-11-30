@@ -32,14 +32,14 @@ BadgeRow::~BadgeRow()
 
 void BadgeRow::setBadgeState(BadgeState state)
 {
-    QPalette p(palette());
+    QPalette p(ui.frame->palette());
 
     switch (state)
     {
         case BadgeIdle:
             setBadgeEnabled(true);
             p.setColor(QPalette::Window, QColor("#CDCDCD"));
-            p.setColor(QPalette::WindowText, QColor("#3C3C3C"));
+            p.setColor(QPalette::WindowText, QColor("#808080"));
             ui.status->setPixmap(QPixmap(":/icons/badgehacker/dialog-plain_sm.png"));
             break;
 
@@ -47,7 +47,7 @@ void BadgeRow::setBadgeState(BadgeState state)
             setBadgeEnabled(true);
             p.setColor(QPalette::Window, QColor("#FFFFB4"));
             p.setColor(QPalette::WindowText, QColor("#808000"));
-            ui.status->setPixmap(QPixmap(":/icons/badgehacker/dialog-plain_sm.png"));
+            ui.status->setPixmap(QPixmap(":/icons/badgehacker/dialog-progress_sm.png"));
             break;
 
         case BadgeError:
@@ -72,7 +72,7 @@ void BadgeRow::setBadgeState(BadgeState state)
             break;
     }
 
-    setPalette(p);
+    ui.frame->setPalette(p);
 }
 
 void BadgeRow::badgeStateChanged()
@@ -88,12 +88,10 @@ void BadgeRow::setBadgeEnabled(bool enabled)
     if (enabled)
     {
         ui.message->setText(tr("Idle"));
-        ui.progress->show();
     }
     else
     {
         ui.message->setText(tr("This port is disabled"));
-        ui.progress->hide();
     }
 
     ui.message->setEnabled(enabled);

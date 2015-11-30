@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>538</width>
+    <width>440</width>
     <height>489</height>
    </rect>
   </property>
@@ -47,8 +47,8 @@
    </item>
    <item>
     <widget class="QScrollArea" name="scrollArea">
-     <property name="frameShadow">
-      <enum>QFrame::Sunken</enum>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
      </property>
      <property name="verticalScrollBarPolicy">
       <enum>Qt::ScrollBarAsNeeded</enum>
@@ -61,7 +61,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>518</width>
+        <width>420</width>
         <height>359</height>
        </rect>
       </property>

@@ -12,5 +12,6 @@
     <file>dialog-plain_sm.png</file>
     <file>dialog-accept_sm.png</file>
     <file>dialog-reject_sm.png</file>
+    <file>dialog-progress_sm.png</file>
 </qresource>
 </RCC>
