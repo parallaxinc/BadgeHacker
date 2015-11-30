@@ -487,17 +487,17 @@ Badge::BadgeError Badge::ping()
 
     if (!read_data("ping"))
     {
-        if (!blank())
-        {
-            return BadgeNotFoundError;
-        }
-        else
-        {
+//        if (!blank())
+//        {
+//            return BadgeNotFoundError;
+//        }
+//        else
+//        {
             if (!read_data("ping"))
             {
                 return FirmwareNotFoundError;
             }
-        }
+//        }
     }
 
     if ( rawreply.isEmpty() 

@@ -9,12 +9,13 @@
 #include <PropellerSession>
 
 #include "badge.h"
+#include "hackergang.h"
 
 #include "ui_badgehacker.h"
 
 Q_DECLARE_LOGGING_CATEGORY(badgehacker)
 
-class BadgeHacker : public QWidget 
+class BadgeHacker : public QMainWindow
 {
     Q_OBJECT
 
@@ -23,6 +24,7 @@ private:
     PropellerManager * manager;
 
     Badge * badge;
+    HackerGang * hackergang;
     QMap<QString, QString> _expected;
 
     QList<QStringList> contactlist;

@@ -17,12 +17,16 @@ Q_LOGGING_CATEGORY(badgehacker, "badgehacker")
 
 BadgeHacker::BadgeHacker(PropellerManager * manager,
                    QWidget *parent)
-: QWidget(parent)
+: QMainWindow(parent)
 {
     ui.setupUi(this);
 
     this->manager = manager;
     badge = new Badge(manager, ui.port->currentText());
+    hackergang = new HackerGang(manager);
+
+    hackergang->hide();
+    statusBar()->hide();
 
     version();
 
@@ -53,6 +57,8 @@ BadgeHacker::BadgeHacker(PropellerManager * manager,
     connect(ui.activeButton, SIGNAL(toggled(bool)), this, SLOT(handleEnable(bool)));
     connect(ui.contactList, SIGNAL(currentRowChanged(int)), this, SLOT(showContact(int)));
 
+    connect(ui.actionBulk_Programmer, SIGNAL(triggered()), hackergang, SLOT(show()));
+
     updatePorts();
 }
 
@@ -61,6 +67,7 @@ BadgeHacker::~BadgeHacker()
     closed();
 
     delete badge;
+    delete hackergang;
 }
 
 void BadgeHacker::version()
@@ -773,4 +780,3 @@ bool BadgeHacker::notFound(const QString & title,
     else
         return false;
 }
-

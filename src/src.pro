@@ -24,17 +24,20 @@ SOURCES += \
     hackergang.cpp \
     badge.cpp \
     badgerow.cpp \
+    selectcolumns.cpp \
 
 HEADERS += \
     badgehacker.h \
     hackergang.h \
     badge.h \
     badgerow.h \
+    selectcolumns.h \
 
 FORMS += \
     badgehacker.ui \
     badgerow.ui \
     hackergang.ui \
+    selectcolumns.ui \
 
 RESOURCES += \
     ../icons/icons.qrc \

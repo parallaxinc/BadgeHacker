@@ -23,7 +23,9 @@ private:
     PropellerManager * manager;
     QStringList ports;
 
+    QString filename;
     QList<QStringList> contactlist;
+    QStringList contact;
 
 public:
     explicit HackerGang(PropellerManager * manager, QWidget *parent = 0);
@@ -31,8 +33,9 @@ public:
 
 private slots:
     void updatePorts();
-//    void openContacts();
-//    void saveContacts();
+    void openContacts();
+    void saveContacts();
+    void checkString(QString &temp, QChar character = 0);
 
 signals:
     void program();
