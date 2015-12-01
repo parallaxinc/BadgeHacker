@@ -60,6 +60,7 @@ void SelectColumns::updateLines()
             else
             {
                 row->setEnabled(false);
+                row->setText(QString());
             }
         }
         QString text = c->text();
@@ -73,6 +74,55 @@ QList<QStringList> SelectColumns::acceptedList()
     if (ui.excludeFirstRow->isChecked()
             && !newcontactlist.isEmpty())
         newcontactlist.removeFirst();
+
+    QHash<QString, int> indexhash;
+    QList<QLineEdit *> children = findChildren<QLineEdit *>();
+
+    foreach (QLineEdit * c, children)
+    {
+        if (!c->objectName().contains("_2"))
+        {
+//            qDebug() << c->objectName();
+            bool ok;
+            int index = c->text().toInt(&ok);
+
+            if (ok && index <= newcontactlist[0].size() && index >= 1)
+            {
+                indexhash[c->objectName()] = index;
+            }
+
+            QString text = c->text();
+        }
+    }
+
+    QList<QStringList> tempcontactlist;
+
+    foreach (QStringList contact, newcontactlist)
+    {
+        QStringList newcontact;
+        foreach (QLineEdit * c, children)
+        {
+            if (!c->objectName().contains("_2"))
+            {
+                int index = indexhash[c->objectName()];
+                if (index <= contact.size() && index >= 1)
+                {
+                    newcontact.append(contact[index-1]);
+//                    qDebug() << index << contact[index-1];
+                }
+                else
+                {
+                    newcontact.append(QString());
+//                    qDebug() << 0 << QString();
+                }
+            }
+        }
+
+        tempcontactlist.append(newcontact);
+//        qDebug() << "\n";
+    }
+
+    newcontactlist = tempcontactlist;
 
     return newcontactlist;
 }

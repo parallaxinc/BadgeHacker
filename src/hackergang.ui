@@ -17,7 +17,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Bulk Programmer</string>
+   <string>HackerGang - Bulk Programmer</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
@@ -48,19 +48,19 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QLabel" name="label">
+      <widget class="QLabel" name="labelFile">
        <property name="text">
-        <string>Programmed: 0</string>
+        <string>No file loaded</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="label_2">
+      <widget class="QLabel" name="labelProgrammed">
        <property name="text">
-        <string>Remaining: 0</string>
+        <string>0 / 0 badges programmed</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
       </widget>
      </item>
@@ -127,7 +127,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QFrame" name="removeDevices">
+    <widget class="QFrame" name="connectionState">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
        <horstretch>0</horstretch>
@@ -563,7 +563,7 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_6">
       <item>
-       <widget class="QLabel" name="removeDevicesText">
+       <widget class="QLabel" name="connectionStateText">
         <property name="font">
          <font>
           <pointsize>16</pointsize>

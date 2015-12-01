@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>521</width>
+    <width>466</width>
     <height>507</height>
    </rect>
   </property>
@@ -70,19 +70,6 @@
         </widget>
        </item>
        <item row="0" column="2">
-        <widget class="QLabel" name="headerEnable">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Enable</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="3">
         <widget class="QLabel" name="headerRow">
          <property name="font">
           <font>
@@ -125,23 +112,13 @@
         </widget>
        </item>
        <item row="1" column="2">
-        <widget class="QCheckBox" name="enableScroll1">
-         <property name="maximumSize">
-          <size>
-           <width>40</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="3">
         <widget class="QLineEdit" name="lineScroll1_2">
+         <property name="cursor">
+          <cursorShape>ArrowCursor</cursorShape>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -183,23 +160,13 @@
         </widget>
        </item>
        <item row="2" column="2">
-        <widget class="QCheckBox" name="enableScroll2">
-         <property name="maximumSize">
-          <size>
-           <width>40</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="3">
         <widget class="QLineEdit" name="lineScroll2_2">
+         <property name="cursor">
+          <cursorShape>ArrowCursor</cursorShape>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -241,23 +208,13 @@
         </widget>
        </item>
        <item row="3" column="2">
-        <widget class="QCheckBox" name="enableScroll">
-         <property name="maximumSize">
-          <size>
-           <width>40</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="3">
         <widget class="QLineEdit" name="lineScroll_2">
+         <property name="cursor">
+          <cursorShape>ArrowCursor</cursorShape>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -282,6 +239,25 @@
          </property>
         </widget>
        </item>
+       <item row="4" column="2">
+        <widget class="QLineEdit" name="lineNonScroll1_2">
+         <property name="cursor">
+          <cursorShape>ArrowCursor</cursorShape>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="maxLength">
+          <number>8</number>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
        <item row="4" column="1">
         <widget class="QLineEdit" name="lineNonScroll1">
          <property name="maximumSize">
@@ -295,35 +271,6 @@
          </property>
          <property name="maxLength">
           <number>3</number>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="2">
-        <widget class="QCheckBox" name="enableNonScroll1">
-         <property name="maximumSize">
-          <size>
-           <width>40</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="3">
-        <widget class="QLineEdit" name="lineNonScroll1_2">
-         <property name="text">
-          <string/>
-         </property>
-         <property name="maxLength">
-          <number>8</number>
-         </property>
-         <property name="readOnly">
-          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -357,23 +304,13 @@
         </widget>
        </item>
        <item row="5" column="2">
-        <widget class="QCheckBox" name="enableNonScroll2">
-         <property name="maximumSize">
-          <size>
-           <width>40</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="3">
         <widget class="QLineEdit" name="lineNonScroll2_2">
+         <property name="cursor">
+          <cursorShape>ArrowCursor</cursorShape>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -398,6 +335,25 @@
          </property>
         </widget>
        </item>
+       <item row="6" column="2">
+        <widget class="QLineEdit" name="lineInfo1_2">
+         <property name="cursor">
+          <cursorShape>ArrowCursor</cursorShape>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="maxLength">
+          <number>31</number>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
        <item row="6" column="1">
         <widget class="QLineEdit" name="lineInfo1">
          <property name="maximumSize">
@@ -411,48 +367,6 @@
          </property>
          <property name="maxLength">
           <number>3</number>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="2">
-        <widget class="QCheckBox" name="enableInfo1">
-         <property name="maximumSize">
-          <size>
-           <width>40</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="3">
-        <widget class="QLineEdit" name="lineInfo1_2">
-         <property name="text">
-          <string/>
-         </property>
-         <property name="maxLength">
-          <number>31</number>
-         </property>
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0">
-        <widget class="QLabel" name="label_8">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Info Line 2</string>
          </property>
         </widget>
        </item>
@@ -472,24 +386,27 @@
          </property>
         </widget>
        </item>
-       <item row="7" column="2">
-        <widget class="QCheckBox" name="enableInfo2">
-         <property name="maximumSize">
-          <size>
-           <width>40</width>
-           <height>16777215</height>
-          </size>
+       <item row="7" column="0">
+        <widget class="QLabel" name="label_8">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
          <property name="text">
-          <string/>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
+          <string>Info Line 2</string>
          </property>
         </widget>
        </item>
-       <item row="7" column="3">
+       <item row="7" column="2">
         <widget class="QLineEdit" name="lineInfo2_2">
+         <property name="cursor">
+          <cursorShape>ArrowCursor</cursorShape>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -514,6 +431,25 @@
          </property>
         </widget>
        </item>
+       <item row="8" column="2">
+        <widget class="QLineEdit" name="lineInfo3_2">
+         <property name="cursor">
+          <cursorShape>ArrowCursor</cursorShape>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="maxLength">
+          <number>31</number>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
        <item row="8" column="1">
         <widget class="QLineEdit" name="lineInfo3">
          <property name="maximumSize">
@@ -530,35 +466,6 @@
          </property>
         </widget>
        </item>
-       <item row="8" column="2">
-        <widget class="QCheckBox" name="enableInfo3">
-         <property name="maximumSize">
-          <size>
-           <width>40</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="3">
-        <widget class="QLineEdit" name="lineInfo3_2">
-         <property name="text">
-          <string/>
-         </property>
-         <property name="maxLength">
-          <number>31</number>
-         </property>
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
        <item row="9" column="0">
         <widget class="QLabel" name="label_10">
          <property name="sizePolicy">
@@ -569,6 +476,25 @@
          </property>
          <property name="text">
           <string>Info Line 4</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="2">
+        <widget class="QLineEdit" name="lineInfo4_2">
+         <property name="cursor">
+          <cursorShape>ArrowCursor</cursorShape>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="maxLength">
+          <number>31</number>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -588,35 +514,6 @@
          </property>
         </widget>
        </item>
-       <item row="9" column="2">
-        <widget class="QCheckBox" name="enableInfo4">
-         <property name="maximumSize">
-          <size>
-           <width>40</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="3">
-        <widget class="QLineEdit" name="lineInfo4_2">
-         <property name="text">
-          <string/>
-         </property>
-         <property name="maxLength">
-          <number>31</number>
-         </property>
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
        <item row="10" column="0">
         <widget class="QLabel" name="label_13">
          <property name="sizePolicy">
@@ -627,6 +524,25 @@
          </property>
          <property name="text">
           <string>RGB Left</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="2">
+        <widget class="QLineEdit" name="lineRgbLeft_2">
+         <property name="cursor">
+          <cursorShape>ArrowCursor</cursorShape>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="maxLength">
+          <number>12</number>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -646,35 +562,6 @@
          </property>
         </widget>
        </item>
-       <item row="10" column="2">
-        <widget class="QCheckBox" name="enableRgbLeft">
-         <property name="maximumSize">
-          <size>
-           <width>40</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="10" column="3">
-        <widget class="QLineEdit" name="lineRgbLeft_2">
-         <property name="text">
-          <string/>
-         </property>
-         <property name="maxLength">
-          <number>12</number>
-         </property>
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
        <item row="11" column="0">
         <widget class="QLabel" name="label_14">
          <property name="sizePolicy">
@@ -685,6 +572,25 @@
          </property>
          <property name="text">
           <string>RGB Right</string>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="2">
+        <widget class="QLineEdit" name="lineRgbRight_2">
+         <property name="cursor">
+          <cursorShape>ArrowCursor</cursorShape>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="maxLength">
+          <number>12</number>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -704,35 +610,6 @@
          </property>
         </widget>
        </item>
-       <item row="11" column="2">
-        <widget class="QCheckBox" name="enableRgbRight">
-         <property name="maximumSize">
-          <size>
-           <width>40</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="11" column="3">
-        <widget class="QLineEdit" name="lineRgbRight_2">
-         <property name="text">
-          <string/>
-         </property>
-         <property name="maxLength">
-          <number>12</number>
-         </property>
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
        <item row="12" column="0">
         <widget class="QLabel" name="label_11">
          <property name="sizePolicy">
@@ -743,6 +620,25 @@
          </property>
          <property name="text">
           <string>LED</string>
+         </property>
+        </widget>
+       </item>
+       <item row="12" column="2">
+        <widget class="QLineEdit" name="lineLed_2">
+         <property name="cursor">
+          <cursorShape>ArrowCursor</cursorShape>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="maxLength">
+          <number>6</number>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -759,35 +655,6 @@
          </property>
          <property name="maxLength">
           <number>3</number>
-         </property>
-        </widget>
-       </item>
-       <item row="12" column="2">
-        <widget class="QCheckBox" name="enableLed">
-         <property name="maximumSize">
-          <size>
-           <width>40</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="12" column="3">
-        <widget class="QLineEdit" name="lineLed_2">
-         <property name="text">
-          <string/>
-         </property>
-         <property name="maxLength">
-          <number>6</number>
-         </property>
-         <property name="readOnly">
-          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -861,198 +728,6 @@
     <hint type="destinationlabel">
      <x>286</x>
      <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>enableScroll1</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>lineScroll1_2</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>239</x>
-     <y>92</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>308</x>
-     <y>89</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>enableScroll2</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>lineScroll2_2</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>231</x>
-     <y>123</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>298</x>
-     <y>119</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>enableScroll</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>lineScroll_2</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>236</x>
-     <y>157</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>318</x>
-     <y>159</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>enableNonScroll1</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>lineNonScroll1_2</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>226</x>
-     <y>186</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>296</x>
-     <y>186</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>enableNonScroll2</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>lineNonScroll2_2</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>236</x>
-     <y>224</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>303</x>
-     <y>225</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>enableInfo1</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>lineInfo1_2</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>236</x>
-     <y>254</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>321</x>
-     <y>256</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>enableInfo2</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>lineInfo2_2</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>226</x>
-     <y>290</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>307</x>
-     <y>287</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>enableInfo3</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>lineInfo3_2</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>228</x>
-     <y>318</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>298</x>
-     <y>319</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>enableInfo4</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>lineInfo4_2</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>228</x>
-     <y>350</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>304</x>
-     <y>351</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>enableRgbLeft</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>lineRgbLeft_2</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>239</x>
-     <y>388</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>293</x>
-     <y>390</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>enableRgbRight</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>lineRgbRight_2</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>232</x>
-     <y>418</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>292</x>
-     <y>416</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>enableLed</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>lineLed_2</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>239</x>
-     <y>447</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>288</x>
-     <y>448</y>
     </hint>
    </hints>
   </connection>

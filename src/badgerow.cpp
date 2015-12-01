@@ -3,6 +3,7 @@
 Q_LOGGING_CATEGORY(badgerow, "hackergang.row")
 
 BadgeRow::BadgeRow(PropellerManager * manager,
+        HackerGang * hackergang,
         const QString & portname,
         QWidget *parent)
 : QWidget(parent)
@@ -10,11 +11,12 @@ BadgeRow::BadgeRow(PropellerManager * manager,
     ui.setupUi(this);
 
     this->manager = manager;
+    this->hackergang = hackergang;
     badge = new Badge(manager, portname);
 
     ui.enable->setText(portname);
 
-    connect(ui.enable, SIGNAL(clicked(bool)),   this, SLOT(badgeStateChanged()));
+    connect(ui.enable, SIGNAL(clicked(bool)),   this, SLOT(enableClicked()));
 
     connect(badge,      SIGNAL(statusChanged(const QString &)),
             ui.message, SLOT(setText(const QString &)));
@@ -32,6 +34,9 @@ BadgeRow::~BadgeRow()
 
 void BadgeRow::setBadgeState(BadgeState state)
 {
+    _state = state;
+    emit badgeStateChanged();
+
     QPalette p(ui.frame->palette());
 
     switch (state)
@@ -75,7 +80,7 @@ void BadgeRow::setBadgeState(BadgeState state)
     ui.frame->setPalette(p);
 }
 
-void BadgeRow::badgeStateChanged()
+void BadgeRow::enableClicked()
 {
     if (ui.enable->isChecked())
         setBadgeState(BadgeIdle);
@@ -107,6 +112,8 @@ void BadgeRow::program()
 {
     if (ui.enable->isChecked())
     {
+        contact = hackergang->popContact();
+        if (contact.isEmpty()) return;
         setBadgeState(BadgeInProgress);
         badge->program();
     }
@@ -120,4 +127,10 @@ void BadgeRow::success()
 void BadgeRow::failure()
 {
     setBadgeState(BadgeError);
+    hackergang->pushContact(contact);
+}
+
+BadgeRow::BadgeState BadgeRow::state()
+{
+    return _state;
 }

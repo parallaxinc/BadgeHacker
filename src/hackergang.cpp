@@ -13,7 +13,6 @@
 #include <PropellerLoader>
 #include <PropellerImage>
 
-#include "badgerow.h"
 #include "selectcolumns.h"
 
 Q_LOGGING_CATEGORY(hackergang, "badgehacker.gang")
@@ -24,15 +23,19 @@ HackerGang::HackerGang(PropellerManager * manager,
 {
     ui.setupUi(this);
 
+    this->signalMapper = new QSignalMapper(this);
     this->manager = manager;
 
     connect(manager, SIGNAL(portListChanged()), this, SLOT(updatePorts()));
+    connect(signalMapper, SIGNAL(mapped(QWidget *)), this, SLOT(checkState(QWidget *)));
 
-    connect (ui.program, SIGNAL(clicked()), this, SIGNAL(program()));
+    connect (ui.program, SIGNAL(clicked()), this, SLOT(program()));
     connect (ui.open, SIGNAL(clicked()),    this, SLOT(openContacts()));
     connect (ui.save, SIGNAL(clicked()),    this, SLOT(saveContacts()));
 
     updatePorts();
+    updateFileText();
+    setConnectionState(false);
 }
 
 HackerGang::~HackerGang()
@@ -52,7 +55,10 @@ void HackerGang::updatePorts()
             QString p = ((BadgeRow *) b)->portName();
             if (!newports.contains(p))
             {
-                disconnect (this, SIGNAL(program()), b, SLOT(program()));
+                disconnect (this,   SIGNAL(programTriggered()),     b,              SLOT(program()));
+                disconnect (b,      SIGNAL(badgeStateChanged()),    signalMapper,   SLOT(map()));
+                signalMapper->removeMappings(b);
+                _active.remove(b);
 
                 ui.badgeLayout->removeWidget(b);
                 delete b;
@@ -65,16 +71,64 @@ void HackerGang::updatePorts()
     {
         if (!ports.contains(p))
         {
-            BadgeRow * b = new BadgeRow(manager, p);
+            BadgeRow * b = new BadgeRow(manager, this, p);
             ui.badgeLayout->addWidget(b);
 
-            connect (this, SIGNAL(program()), b, SLOT(program()));
+            connect (this,  SIGNAL(programTriggered()),     b,              SLOT(program()));
+            connect (b,     SIGNAL(badgeStateChanged()),    signalMapper,   SLOT(map()));
+            signalMapper->setMapping(b, b);
         }
     }
 
     ports = newports;
 }
 
+void HackerGang::checkState(QWidget * w)
+{
+    BadgeRow * b = (BadgeRow *) w;
+    if (b->state() == BadgeRow::BadgeInProgress)
+        _active[b] = true;
+    else
+        _active[b] = false;
+
+//    qDebug() << "SUCCESS" << _active.size() << _active.values() << w;
+    foreach (QWidget * i, _active.keys())
+    {
+        if (_active[i]) return;
+    }
+
+    setConnectionState(false);
+}
+
+
+void HackerGang::program()
+{
+    qCDebug(hackergang) << "program()";
+
+    if (contactlist.isEmpty())
+    {
+        QMessageBox box(QMessageBox::Warning,
+                tr("Contact list finished!"),
+                tr("You're all out of badges to program. "
+                   "Perhaps it's time to have a drink!"));
+        box.setStandardButtons(QMessageBox::Ok);
+        box.exec();
+        return;
+    }
+
+    if (filename.isEmpty())
+    {
+        QMessageBox box(QMessageBox::Warning,
+                tr("No file loaded!"),
+                tr("Click \"Open Contacts\" to load a contact list."));
+        box.setStandardButtons(QMessageBox::Ok);
+        box.exec();
+        return;
+    }
+
+    setConnectionState(true);
+    emit programTriggered();
+}
 
 void HackerGang::saveContacts()
 {
@@ -88,7 +142,6 @@ void HackerGang::saveContacts()
     dialog.setDefaultSuffix("csv");
     dialog.setAcceptMode(QFileDialog::AcceptSave);
 
-    QString filename;
     if (dialog.exec())
         filename = dialog.selectedFiles()[0];
 
@@ -169,7 +222,6 @@ void HackerGang::openContacts()
     dialog.setDefaultSuffix("csv");
     dialog.setAcceptMode(QFileDialog::AcceptOpen);
 
-    QString filename;
     if (dialog.exec())
         filename = dialog.selectedFiles()[0];
 
@@ -197,6 +249,7 @@ void HackerGang::openContacts()
     }
 
     QString data = file.readAll();
+    inprogresscontactlist.clear();
     contactlist.clear();
     contact.clear();
 
@@ -232,20 +285,72 @@ void HackerGang::openContacts()
     }
 
     SelectColumns * w = new SelectColumns(contactlist, this);
-    w->exec();
+    int ret = w->exec();
+    qDebug() << ret;
+    if (ret == QDialog::Rejected)
+    {
+        inprogresscontactlist.clear();
+        contactlist.clear();
+        updateFileText();
+        return;
+    }
 
     contactlist = w->acceptedList();
+    updateFileText(filename);
 
-////    qCDebug(hackergang) << "SIZE" << contactlist.size();
-//    foreach (QStringList c, contactlist)
-//    {
-////        qCDebug(hackergang) << "SIZE" << c.size();
-//        foreach (QString s, c)
-//        {
-////            qCDebug(hackergang) << "  " << s.size();
-//        }
-//
-//    }
+    qCDebug(hackergang) << "SIZE" << contactlist.size();
+    foreach (QStringList c, contactlist)
+    {
+        qCDebug(hackergang) << "SIZE" << c.size() << c;
+    }
+}
+
+QStringList HackerGang::popContact()
+{
+    if (!contactlist.isEmpty())
+    {
+        QStringList c = contactlist.takeFirst();
+        inprogresscontactlist.append(c);
+        updateProgrammedText();
+        return c;
+    }
+    else
+    {
+        return QStringList();
+    }
+}
+
+void HackerGang::pushContact(QStringList contact)
+{
+    inprogresscontactlist.removeLast();
+    contactlist.prepend(contact);
+    updateProgrammedText();
+}
+
+void HackerGang::updateProgrammedText()
+{
+    if (contactlist.size() > 0 || inprogresscontactlist.size() > 0)
+    {
+        ui.labelProgrammed->setText(tr("%1 of %2 badges programmed")
+                .arg(inprogresscontactlist.size())
+                .arg(contactlist.size()+inprogresscontactlist.size())
+                );
+        ui.labelProgrammed->show();
+    }
+    else
+    {
+        ui.labelProgrammed->hide();
+    }
+}
+
+void HackerGang::updateFileText(QString filename)
+{
+    if (filename.isEmpty())
+        ui.labelFile->setText(tr("No file loaded"));
+    else
+        ui.labelFile->setText(tr("File: %1").arg(QFileInfo(filename).fileName()));
+
+    updateProgrammedText();
 }
 
 void HackerGang::checkString(QString &temp, QChar character)
@@ -259,14 +364,11 @@ void HackerGang::checkString(QString &temp, QChar character)
         }
 
         temp.replace("\"\"", "\"");
-//        qCDebug(hackergang) << temp;
         contact.append(temp);
         if (character != QChar(','))
         {
-//            qCDebug(hackergang) << "\n";
             contactlist.append(contact);
             contact.clear();
-//            model->appendRow(standardItemList);
         }
         temp.clear();
     }
@@ -276,35 +378,27 @@ void HackerGang::checkString(QString &temp, QChar character)
     }
 }
 
-//    QTextStream out(&file);
-//    out.setCodec("UTF-8");
-//
-//    out << "\"info 1\",";
-//    out << "\"info 2\",";
-//    out << "\"info 3\",";
-//    out << "\"info 4\"\n";
-//
-//    foreach(QStringList contact, contactlist)
-//    {
-//        QStringList sl = contact;
-//
-//        if (contact.size() < 4)
-//        {
-//            for (int i = 0; i < 4 - contact.size() ; i++)
-//                sl.append(QString());
-//        }
-//
-//        for (int i = 0; i < sl.size(); i++)
-//        {
-//            out << "\"" << sl[i] << "\"";
-//
-//            if (i < sl.size()-1)
-//                out << ",";
-//        }
-//
-//        out << "\n";
-//    }
-//
-//    out.flush();
-//
-//    file.close();
+void HackerGang::setConnectionState(bool connected)
+{
+    QPalette p(ui.connectionState->palette());
+
+    if (connected)
+    {
+        ui.program->setEnabled(false);
+        ui.open->setEnabled(false);
+        p.setColor(QPalette::Window, QColor("#FFFF94"));
+        p.setColor(QPalette::WindowText, QColor("#9D9D00"));
+        ui.connectionStateText->setText(tr("Programming in progress"));
+    }
+    else
+    {
+        ui.program->setEnabled(true);
+        ui.open->setEnabled(true);
+        p.setColor(QPalette::Window, QColor("#94FF94"));
+        p.setColor(QPalette::WindowText, QColor("#00BD00"));
+        ui.connectionStateText->setText(tr("Safe to remove badges"));
+    }
+
+    ui.connectionState->setPalette(p);
+}
+
