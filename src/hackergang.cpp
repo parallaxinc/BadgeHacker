@@ -15,7 +15,7 @@
 
 #include "selectcolumns.h"
 
-Q_LOGGING_CATEGORY(hackergang, "badgehacker.gang")
+Q_LOGGING_CATEGORY(hackergang, "badgehacker.bulk")
 
 HackerGang::HackerGang(PropellerManager * manager,
                    QWidget *parent)
@@ -105,22 +105,22 @@ void HackerGang::program()
 {
     qCDebug(hackergang) << "program()";
 
+    if (filename.isEmpty())
+    {
+        QMessageBox box(QMessageBox::Warning,
+                tr("No file loaded!"),
+                tr("Click \"Open Contacts\" to load a contact list."));
+        box.setStandardButtons(QMessageBox::Ok);
+        box.exec();
+        return;
+    }
+
     if (contactlist.isEmpty())
     {
         QMessageBox box(QMessageBox::Warning,
                 tr("Contact list finished!"),
                 tr("You're all out of badges to program. "
                    "Perhaps it's time to have a drink!"));
-        box.setStandardButtons(QMessageBox::Ok);
-        box.exec();
-        return;
-    }
-
-    if (filename.isEmpty())
-    {
-        QMessageBox box(QMessageBox::Warning,
-                tr("No file loaded!"),
-                tr("Click \"Open Contacts\" to load a contact list."));
         box.setStandardButtons(QMessageBox::Ok);
         box.exec();
         return;
@@ -133,6 +133,27 @@ void HackerGang::program()
 void HackerGang::saveContacts()
 {
     qCDebug(hackergang) << "Saving contact write progress";
+
+    if (filename.isEmpty())
+    {
+        QMessageBox box(QMessageBox::Warning,
+                tr("No file loaded!"),
+                tr("Click \"Open Contacts\" to load a contact list."));
+        box.setStandardButtons(QMessageBox::Ok);
+        box.exec();
+        return;
+    }
+
+    if (contactlist.isEmpty())
+    {
+        QMessageBox box(QMessageBox::Warning,
+                tr("Contact list finished!"),
+                tr("You're all out of badges to program. "
+                   "There's nothing to save!"));
+        box.setStandardButtons(QMessageBox::Ok);
+        box.exec();
+        return;
+    }
 
     QFileDialog dialog(this,
             tr("Save Progress"),
@@ -380,25 +401,31 @@ void HackerGang::checkString(QString &temp, QChar character)
 
 void HackerGang::setConnectionState(bool connected)
 {
-    QPalette p(ui.connectionState->palette());
+    QPalette p(ui.connectionStateText->palette());
 
     if (connected)
     {
         ui.program->setEnabled(false);
         ui.open->setEnabled(false);
+        p.setColor(QPalette::Dark,  QColor("#DDDD11"));
+        p.setColor(QPalette::Light, QColor("#FFFFBB"));
         p.setColor(QPalette::Window, QColor("#FFFF94"));
-        p.setColor(QPalette::WindowText, QColor("#9D9D00"));
-        ui.connectionStateText->setText(tr("Programming in progress"));
+        p.setColor(QPalette::WindowText, QColor("#BDBD00"));
+        ui.connectionStateText->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+        ui.connectionStateText->setText(tr("DO NOT REMOVE BADGES"));
     }
     else
     {
         ui.program->setEnabled(true);
         ui.open->setEnabled(true);
+        p.setColor(QPalette::Dark,  QColor("#54FF54"));
+        p.setColor(QPalette::Light, QColor("#D4FFD4"));
         p.setColor(QPalette::Window, QColor("#94FF94"));
         p.setColor(QPalette::WindowText, QColor("#00BD00"));
+        ui.connectionStateText->setFrameStyle(QFrame::Panel | QFrame::Raised);
         ui.connectionStateText->setText(tr("Safe to remove badges"));
     }
 
-    ui.connectionState->setPalette(p);
+    ui.connectionStateText->setPalette(p);
 }
 

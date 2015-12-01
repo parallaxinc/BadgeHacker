@@ -94,6 +94,7 @@ public slots:
     bool program();
     void wipe();
     bool blank();
+    bool detect();
 
     QStringList         nsmsg();
     QStringList         smsg();

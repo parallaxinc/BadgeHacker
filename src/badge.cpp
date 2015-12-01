@@ -120,25 +120,27 @@ bool Badge::read_data(const QString & cmd, int timeout)
     return ack;
 }
 
-bool Badge::blank()
+bool Badge::detect()
 {
-    start_ready();
-
     int hw = loader->version();
     if (!hw)
     {
         qDebug() << "no hardware detected";
         return false;
     }
-    else
-    {
-        QString hwstring;
-        if (hw == 1) hwstring = "Propeller 1";
-        else hwstring = "Unknown";
 
-        qCDebug(badge) << "hardware:" << qPrintable(hwstring);
-    }
+    QString hwstring;
+    if (hw == 1) hwstring = "Propeller 1";
+    else hwstring = "Unknown";
 
+    qCDebug(badge) << "hardware:" << qPrintable(hwstring);
+
+    return true;
+}
+
+bool Badge::blank()
+{
+    start_ready();
     reset();
     _ready = read_data(QString(), 6000);
     readyTimer.stop();
@@ -476,7 +478,6 @@ Badge::BadgeError Badge::ping()
     if (!isOpen())
         blank();
 
-
     if (!ready())
     {
         if (readyTimer.isActive())
@@ -487,17 +488,18 @@ Badge::BadgeError Badge::ping()
 
     if (!read_data("ping"))
     {
-//        if (!blank())
-//        {
-//            return BadgeNotFoundError;
-//        }
-//        else
-//        {
-            if (!read_data("ping"))
-            {
+        if (!detect())
+        {
+            return BadgeNotFoundError;
+        }
+        else
+        {
+            if (!blank())
                 return FirmwareNotFoundError;
-            }
-//        }
+
+            if (!read_data("ping"))
+                return FirmwareNotFoundError;
+        }
     }
 
     if ( rawreply.isEmpty() 
