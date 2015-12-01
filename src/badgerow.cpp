@@ -18,10 +18,7 @@ BadgeRow::BadgeRow(PropellerManager * manager,
 
     connect(ui.enable, SIGNAL(clicked(bool)),   this, SLOT(enableClicked()));
 
-    connect(badge,      SIGNAL(statusChanged(const QString &)),
-            ui.message, SLOT(setText(const QString &)));
-
-    connect(badge, SIGNAL(success()), this, SLOT(success()));
+    connect(badge, SIGNAL(success()), this, SLOT(programmed()));
     connect(badge, SIGNAL(failure()), this, SLOT(failure()));
 
     setBadgeState(BadgeIdle);
@@ -67,6 +64,7 @@ void BadgeRow::setBadgeState(BadgeState state)
             p.setColor(QPalette::Window, QColor("#B4FFB4"));
             p.setColor(QPalette::WindowText, QColor("#007000"));
             ui.status->setPixmap(QPixmap(":/icons/badgehacker/dialog-accept_sm.png"));
+            ui.message->setText(tr("Success!"));
             break;
 
         case BadgeDisabled:
@@ -112,6 +110,8 @@ void BadgeRow::program()
 {
     if (ui.enable->isChecked())
     {
+        connect(badge,      SIGNAL(statusChanged(const QString &)),
+                ui.message, SLOT(setText(const QString &)));
         contact = hackergang->popContact();
         if (contact.isEmpty()) return;
         setBadgeState(BadgeInProgress);
@@ -119,8 +119,64 @@ void BadgeRow::program()
     }
 }
 
+void BadgeRow::programmed()
+{
+    disconnect(badge,      SIGNAL(statusChanged(const QString &)),
+               ui.message, SLOT(setText(const QString &)));
+    qCDebug(badgerow) << "programmed()";
+    ui.message->setText(tr("Connecting to badge..."));
+
+    connect(badge, SIGNAL(readyReceived()), this, SLOT(wipe()));
+    badge->start_ready(6000);
+}
+
+void BadgeRow::wipe()
+{
+    disconnect(badge, SIGNAL(readyReceived()), this, SLOT(wipe()));
+    qCDebug(badgerow) << "wipe()";
+    ui.message->setText(tr("Wiping contacts..."));
+
+    badge->wipe();
+
+    connect(badge, SIGNAL(readyReceived()), this, SLOT(configure()));
+    badge->start_ready(12000);
+}
+
+void BadgeRow::configure()
+{
+    disconnect(badge, SIGNAL(readyReceived()), this, SLOT(configure()));
+    qCDebug(badgerow) << "configure()";
+    ui.message->setText(tr("Configuring badge..."));
+
+    badge->write_nsmsg( contact[0],
+                        contact[1]);
+
+    badge->write_smsg(  contact[3],
+                        contact[4]);
+
+    QStringList infostrings;
+    infostrings << contact[5]
+                << contact[6]
+                << contact[7]
+                << contact[8];
+    badge->write_info(infostrings);
+
+    badge->write_rgb(   contact[9],
+                        contact[10]);
+
+    // write led
+    badge->write_line(QString("led all \%%1").arg(contact[11].left(6)));
+
+    badge->write_scroll(contact[2] == "yes" ? true : false);
+
+    connect(badge, SIGNAL(readyReceived()), this, SLOT(success()));
+    badge->start_ready(5000);
+}
+
 void BadgeRow::success()
 {
+    qCDebug(badgerow) << "success()";
+    disconnect(badge, SIGNAL(readyReceived()), this, SLOT(success()));
     setBadgeState(BadgeSuccess);
 }
 

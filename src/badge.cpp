@@ -34,6 +34,7 @@ Badge::Badge(PropellerManager * manager,
 
     connect(this, SIGNAL(readyRead()), this, SLOT(read_line()));
     connect(&readyTimer, SIGNAL(timeout()), this, SLOT(set_ready()));
+    connect(&readyTimer, SIGNAL(timeout()), this, SIGNAL(readyReceived()));
 
     connect(loader, SIGNAL(statusChanged(const QString &)),
             this,   SIGNAL(statusChanged(const QString &)));
@@ -402,20 +403,20 @@ void Badge::write_twoitem_line(const QString & cmd,
                                             .arg(line2));
 }
 
-void Badge::write_nsmsg1(const QString & text) { write_oneitem_line("nsmsg 1",text); }
-void Badge::write_nsmsg2(const QString & text) { write_oneitem_line("nsmsg 2",text); }
+void Badge::write_nsmsg1(const QString & text) { write_oneitem_line("nsmsg 1",text.left(8)); }
+void Badge::write_nsmsg2(const QString & text) { write_oneitem_line("nsmsg 2",text.left(8)); }
 
 void Badge::write_nsmsg(const QString & line1, const QString & line2)
 {
-    write_twoitem_line("nsmsg", line1, line2);
+    write_twoitem_line("nsmsg", line1.left(8), line2.left(8));
 }
 
-void Badge::write_smsg1(const QString & text) { write_oneitem_line("smsg 1",text); }
-void Badge::write_smsg2(const QString & text) { write_oneitem_line("smsg 2",text); }
+void Badge::write_smsg1(const QString & text) { write_oneitem_line("smsg 1",text.left(31)); }
+void Badge::write_smsg2(const QString & text) { write_oneitem_line("smsg 2",text.left(31)); }
 
 void Badge::write_smsg (const QString & line1, const QString & line2)
 {
-    write_twoitem_line("smsg",line1, line2);
+    write_twoitem_line("smsg",line1.left(31), line2.left(31));
 }
 
 void Badge::write_scroll(bool enabled)
@@ -426,19 +427,19 @@ void Badge::write_scroll(bool enabled)
         write_oneitem_line("scroll","no");
 }
 
-void Badge::write_info1(const QString & text) { write_oneitem_line("info 1",text); }
-void Badge::write_info2(const QString & text) { write_oneitem_line("info 2",text); }
-void Badge::write_info3(const QString & text) { write_oneitem_line("info 3",text); }
-void Badge::write_info4(const QString & text) { write_oneitem_line("info 4",text); }
+void Badge::write_info1(const QString & text) { write_oneitem_line("info 1",text.left(31)); }
+void Badge::write_info2(const QString & text) { write_oneitem_line("info 2",text.left(31)); }
+void Badge::write_info3(const QString & text) { write_oneitem_line("info 3",text.left(31)); }
+void Badge::write_info4(const QString & text) { write_oneitem_line("info 4",text.left(31)); }
 
 void Badge::write_info(const QStringList & strings)
 {
     if (strings.size() < 4) return;
     write_line(QString("info \"%1\" \"%2\" \"%3\" \"%4\"")
-                                            .arg(strings[0])
-                                            .arg(strings[1])
-                                            .arg(strings[2])
-                                            .arg(strings[2]));
+                                            .arg(strings[0].left(31))
+                                            .arg(strings[1].left(31))
+                                            .arg(strings[2].left(31))
+                                            .arg(strings[2].left(31)));
 }
 
 void Badge::write_led(QList<bool> leds)
@@ -450,14 +451,14 @@ void Badge::write_led(QList<bool> leds)
         ledpattern[i] = leds[i] ? '1' : '0';
     }
 
-    write_line(QString("led all \%%1").arg(ledpattern));
+    write_line(QString("led all \%%1").arg(ledpattern.left(6)));
 }
 
-void Badge::write_leftrgb(const QString & color)  { write_oneitem_line("rgb left", color); }
-void Badge::write_rightrgb(const QString & color) { write_oneitem_line("rgb right",color); }
+void Badge::write_leftrgb(const QString & color)  { write_oneitem_line("rgb left", color.left(9)); }
+void Badge::write_rightrgb(const QString & color) { write_oneitem_line("rgb right",color.left(9)); }
 void Badge::write_rgb(const QString & left, const QString & right)
 {
-    write_twoitem_line("rgb",left,right);
+    write_twoitem_line("rgb",left.left(9),right.left(9));
 }
 
 void Badge::wipe()

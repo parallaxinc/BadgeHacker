@@ -50,6 +50,10 @@ public:
 public slots:
     void setBadgeEnabled(bool enabled);
     void program();
+    void programmed();
+    void configure();
+    void wipe();
+
     void success();
     void failure();
 

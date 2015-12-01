@@ -115,6 +115,7 @@ public:
     QMap<QString, QString> version();
 
 signals:
+    void readyReceived();
     void finished();
     void success();
     void failure();
