@@ -307,7 +307,6 @@ void HackerGang::openContacts()
 
     SelectColumns * w = new SelectColumns(contactlist, this);
     int ret = w->exec();
-    qDebug() << ret;
     if (ret == QDialog::Rejected)
     {
         inprogresscontactlist.clear();
@@ -318,12 +317,6 @@ void HackerGang::openContacts()
 
     contactlist = w->acceptedList();
     updateFileText(filename);
-
-    qCDebug(hackergang) << "SIZE" << contactlist.size();
-    foreach (QStringList c, contactlist)
-    {
-        qCDebug(hackergang) << "SIZE" << c.size() << c;
-    }
 }
 
 QStringList HackerGang::popContact()
