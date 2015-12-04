@@ -1,5 +1,7 @@
 # BadgeHacker
 
+![](https://raw.githubusercontent.com/parallaxinc/BadgeHacker/master/gfx/20000-cut.png)
+
 BadgeHacker is a powerful set of tools to streamline the deployment of
 Parallax Hackable Electronic Badges for your next event.
 
