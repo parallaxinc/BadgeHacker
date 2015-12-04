@@ -8,7 +8,7 @@ Parallax Hackable Electronic Badges for your next event.
 The primary use of BadgeHacker allows guests to easily modify and retrieve
 contacts from their badges, without having to touch a line of code.
 
-![preview](screenshots/badgehacker3.png)
+![preview](http://bit.ly/1RrUz8s)
 
 ## Bulk Programmer
 
@@ -19,4 +19,4 @@ to easily load individual contacts onto each badge.
 
 Connect and program many badges at once and be done in a fraction of the time!
 
-![bulkprogrammer](screenshots/bulkprogrammer.png)
+![bulkprogrammer](http://bit.ly/1lAMmCf)
