@@ -22,6 +22,7 @@ BadgeHacker::BadgeHacker(PropellerManager * manager,
     ui.setupUi(this);
 
     this->manager = manager;
+    manager->enablePortMonitor(true);
     badge = new Badge(manager, ui.port->currentText());
     hackergang = new HackerGang(manager);
 
@@ -131,8 +132,8 @@ void BadgeHacker::closed()
 
 void BadgeHacker::portChanged()
 {
-    qCDebug(badgehacker) << "port:" << qPrintable(badge->portName());
     badge->setPortName(ui.port->currentText());
+    qCDebug(badgehacker) << "switch to port:" << qPrintable(badge->portName());
 }
 
 void BadgeHacker::handleError()

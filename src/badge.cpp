@@ -22,7 +22,6 @@ Badge::Badge(PropellerManager * manager,
 : PropellerSession(manager, portname, parent)
 {
     this->manager = manager;
-    loader = new PropellerLoader(manager, portName());
 
     _expected = readFirmware();
 
@@ -32,15 +31,8 @@ Badge::Badge(PropellerManager * manager,
     colornames << "black" << "blue" << "green" << "cyan" 
                << "red" << "magenta" << "yellow" << "white";
 
-    connect(this, SIGNAL(readyRead()), this, SLOT(read_line()));
     connect(&readyTimer, SIGNAL(timeout()), this, SLOT(set_ready()));
     connect(&readyTimer, SIGNAL(timeout()), this, SIGNAL(readyReceived()));
-
-    connect(loader, SIGNAL(statusChanged(const QString &)),
-            this,   SIGNAL(statusChanged(const QString &)));
-
-    connect(loader, SIGNAL(success()), this, SIGNAL(success()));
-    connect(loader, SIGNAL(failure()), this, SIGNAL(failure()));
 
     readyTimer.setSingleShot(true);
 
@@ -50,7 +42,6 @@ Badge::Badge(PropellerManager * manager,
 
 Badge::~Badge()
 {
-    delete loader;
 }
 
 void Badge::start_ready(int milliseconds)
@@ -86,17 +77,22 @@ void Badge::read_line()
         }
     }
 
-    timer.start(read_timeout);
+//    timer.start(read_timeout);
 }
 
 bool Badge::read_data(const QString & cmd, int timeout)
 {
     ack = false;
+    globalTimer.start(timeout*2);
     timer.start(timeout);
 
     QEventLoop loop;
     connect(this, SIGNAL(finished()), &loop, SLOT(quit()));
     connect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
+    connect(&globalTimer, SIGNAL(timeout()), &loop, SLOT(quit()));
+
+    connect(this, SIGNAL(readyRead()), this, SLOT(read_line()));
+    clear();
 
     write_line(cmd);
     wait_for_write();
@@ -113,20 +109,25 @@ bool Badge::read_data(const QString & cmd, int timeout)
         qCDebug(badge) << "    -" << qPrintable(s);
     }
 
+    disconnect(this, SIGNAL(readyRead()), this, SLOT(read_line()));
+
     disconnect(this, SIGNAL(finished()), &loop, SLOT(quit()));
     disconnect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
+    disconnect(&globalTimer, SIGNAL(timeout()), &loop, SLOT(quit()));
 
     timer.stop();
+    globalTimer.stop();
 //    qCDebug(badge) << "ACK" << ack;
     return ack;
 }
 
 bool Badge::detect()
 {
-    int hw = loader->version();
+    PropellerLoader loader(manager, portName());
+    int hw = loader.version();
     if (!hw)
     {
-        qDebug() << "no hardware detected";
+        qCDebug(badge) << "No hardware detected";
         return false;
     }
 
@@ -134,7 +135,7 @@ bool Badge::detect()
     if (hw == 1) hwstring = "Propeller 1";
     else hwstring = "Unknown";
 
-    qCDebug(badge) << "hardware:" << qPrintable(hwstring);
+    qCDebug(badge) << "Hardware found:" << qPrintable(hwstring);
 
     return true;
 }
@@ -477,14 +478,9 @@ Badge::BadgeError Badge::ping()
 {
     qCDebug(badge) << qPrintable(portName()) << "ping()";
     if (!isOpen())
-        blank();
-
-    if (!ready())
     {
-        if (readyTimer.isActive())
-            wait_for_ready();
-        else
-            blank();
+        qDebug() << "WASNT OPEN";
+        blank();
     }
 
     if (!read_data("ping"))
@@ -527,6 +523,8 @@ bool Badge::program()
     QFile file(":/spin/jm_hackable_ebadge.binary");
     file.open(QIODevice::ReadOnly);
     PropellerImage image = PropellerImage(file.readAll());
-    return loader->upload(image, true);
+    PropellerLoader loader(manager, portName());
+
+    return loader.upload(image, true, true, true);
 }
 

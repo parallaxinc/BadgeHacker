@@ -24,7 +24,6 @@ public:
 
 private:
     PropellerManager * manager;
-    PropellerLoader * loader;
 
     QMap<QString, QString> _expected;
     QMap<QString, QString> _version;
@@ -32,6 +31,7 @@ private:
     QString reply;
     QStringList replystrings;
     QTimer timer;
+    QTimer globalTimer;
     QTimer updateTimer;
     bool _ready;
     QTimer readyTimer;
